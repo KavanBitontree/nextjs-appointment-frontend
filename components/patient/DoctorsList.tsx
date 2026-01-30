@@ -5,8 +5,6 @@ import {
   Stethoscope,
   MapPin,
   DollarSign,
-  ChevronLeft,
-  ChevronRight,
   AlertCircle,
   Loader,
 } from "lucide-react";
@@ -65,10 +63,6 @@ export default function DoctorsList({
   console.log("Doctors array:", doctors);
   console.log("Total:", total);
 
-  const currentPage = filters.skip
-    ? Math.floor(filters.skip / (filters.limit || 10)) + 1
-    : 1;
-  const totalPages = Math.ceil(total / (filters.limit || 10));
 
   if (isPending || loading) {
     return (
@@ -77,7 +71,7 @@ export default function DoctorsList({
           animate={{ rotate: 360 }}
           transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
         >
-          <Loader className="w-8 h-8 text-blue-600" />
+          <Loader className="w-8 h-8 text-slate-900" />
         </motion.div>
       </div>
     );
@@ -125,7 +119,7 @@ export default function DoctorsList({
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.1 }}
-              className="bg-white rounded-2xl p-6 border border-slate-200 hover:shadow-lg hover:border-blue-300 transition-all"
+              className="bg-white rounded-xl p-6 border border-slate-200 hover:shadow-lg hover:border-slate-300 transition-all"
             >
               <div className="flex items-start justify-between gap-6">
                 {/* Doctor Info */}
@@ -135,8 +129,8 @@ export default function DoctorsList({
                   </h3>
 
                   <div className="flex items-center gap-2 mb-4">
-                    <Stethoscope className="w-4 h-4 text-blue-600" />
-                    <span className="text-blue-600 font-medium">
+                    <Stethoscope className="w-4 h-4 text-slate-900" />
+                    <span className="text-slate-900 font-medium">
                       {doctor.speciality}
                     </span>
                   </div>
@@ -155,7 +149,7 @@ export default function DoctorsList({
 
                     {/* Fees */}
                     <div className="flex items-start gap-3">
-                      <DollarSign className="w-5 h-5 text-emerald-600 flex-shrink-0 mt-1" />
+                      <DollarSign className="w-5 h-5 text-green-600 flex-shrink-0 mt-1" />
                       <div>
                         <p className="text-xs text-slate-600">OPD Fees</p>
                         <p className="text-sm font-medium text-slate-900">
@@ -183,7 +177,7 @@ export default function DoctorsList({
                 <motion.button
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
-                  className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium text-sm flex-shrink-0 h-fit"
+                  className="px-6 py-2 bg-slate-900 text-white rounded-xl hover:bg-slate-800 transition-colors font-medium text-sm flex-shrink-0 h-fit"
                 >
                   Book Now
                 </motion.button>
@@ -193,60 +187,6 @@ export default function DoctorsList({
         })}
       </div>
 
-      {/* Pagination */}
-      {totalPages > 1 && (
-        <div className="flex items-center justify-between">
-          <p className="text-sm text-slate-600">
-            Showing {doctors.length} of {total} doctors
-            {totalPages > 0 && ` (Page ${currentPage} of ${totalPages})`}
-          </p>
-
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() =>
-                onPageChange(
-                  Math.max(0, (filters.skip || 0) - (filters.limit || 10)),
-                )
-              }
-              disabled={currentPage === 1 || isPending}
-              className="p-2 border border-slate-300 rounded-lg hover:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-            >
-              <ChevronLeft className="w-5 h-5" />
-            </button>
-
-            <div className="flex gap-1">
-              {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
-                const pageNum = i + 1;
-                const skip = (pageNum - 1) * (filters.limit || 10);
-                return (
-                  <button
-                    key={pageNum}
-                    onClick={() => onPageChange(skip)}
-                    disabled={isPending}
-                    className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                      currentPage === pageNum
-                        ? "bg-blue-600 text-white"
-                        : "border border-slate-300 text-slate-700 hover:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed"
-                    }`}
-                  >
-                    {pageNum}
-                  </button>
-                );
-              })}
-            </div>
-
-            <button
-              onClick={() =>
-                onPageChange((filters.skip || 0) + (filters.limit || 10))
-              }
-              disabled={currentPage === totalPages || isPending}
-              className="p-2 border border-slate-300 rounded-lg hover:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-            >
-              <ChevronRight className="w-5 h-5" />
-            </button>
-          </div>
-        </div>
-      )}
     </>
   );
 }

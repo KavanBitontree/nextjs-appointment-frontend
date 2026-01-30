@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Sidebar, { type NavItem } from "./Sidebar";
 import TopNavbar from "./TopNavbar";
 
@@ -17,7 +17,18 @@ export default function DashboardLayout({
   appName = "Aarogya ABS",
   profileHref = "/patient/profile",
 }: DashboardLayoutProps) {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+  // Persist sidebar state across navigation
+  const [sidebarOpen, setSidebarOpen] = useState(() => {
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem("sidebarOpen");
+      return saved === "true";
+    }
+    return true; // Default to open
+  });
+
+  useEffect(() => {
+    localStorage.setItem("sidebarOpen", String(sidebarOpen));
+  }, [sidebarOpen]);
 
   return (
     <div className="min-h-screen bg-white flex">
@@ -31,9 +42,8 @@ export default function DashboardLayout({
 
       {/* Main Content */}
       <div
-        className={`flex-1 transition-all duration-300 ${
-          sidebarOpen ? "ml-60" : "ml-[100px]"
-        }`}
+        className="flex-1 transition-all duration-300 ease-in-out"
+        style={{ marginLeft: sidebarOpen ? "200px" : "70px" }}
       >
         {/* Top Navigation Bar */}
         <TopNavbar appName={appName} profileHref={profileHref} />

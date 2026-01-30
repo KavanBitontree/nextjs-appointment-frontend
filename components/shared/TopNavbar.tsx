@@ -1,9 +1,9 @@
 "use client";
 
-import React, { useRef } from "react";
+import React, { useRef, memo } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
-import { User, ChevronDown, LogOut } from "lucide-react";
+import { User, ChevronDown, LogOut, Loader } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { useClickOutside } from "@/hooks/use-click-outside";
 import { useState } from "react";
@@ -14,19 +14,26 @@ interface TopNavbarProps {
   showProfileDropdown?: boolean;
 }
 
-export default function TopNavbar({
+function TopNavbar({
   appName = "Aarogya ABS",
   profileHref = "/patient/profile",
   showProfileDropdown = true,
 }: TopNavbarProps) {
   const [profileOpen, setProfileOpen] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
   const { user, logout } = useAuth();
   const profileRef = useRef<HTMLDivElement>(null);
 
   useClickOutside(profileRef, () => setProfileOpen(false));
 
   const handleLogout = async () => {
-    await logout("/login");
+    setIsLoggingOut(true);
+    try {
+      await logout("/login");
+    } catch (error) {
+      console.error("Logout error:", error);
+      setIsLoggingOut(false);
+    }
   };
 
   return (
@@ -42,7 +49,9 @@ export default function TopNavbar({
               className="flex items-center gap-2 p-2 hover:bg-slate-100 rounded-lg transition-colors"
               aria-label="Toggle profile menu"
             >
-              <User className="w-5 h-5 text-slate-700" />
+              <div className="w-8 h-8 bg-slate-900 rounded-full flex items-center justify-center">
+                <User className="w-4 h-4 text-white" />
+              </div>
               <ChevronDown className="w-4 h-4 text-slate-700" />
             </button>
 
@@ -77,12 +86,19 @@ export default function TopNavbar({
                     </Link>
 
                     <motion.button
-                      whileHover={{ backgroundColor: "#f1f5f9" }}
+                      whileHover={!isLoggingOut ? { backgroundColor: "#f1f5f9" } : {}}
                       onClick={handleLogout}
-                      className="w-full flex items-center gap-3 px-4 py-2 text-red-600 rounded-lg transition-colors mt-1"
+                      disabled={isLoggingOut}
+                      className="w-full flex items-center gap-3 px-4 py-2 text-red-600 rounded-lg transition-colors mt-1 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                      <LogOut className="w-4 h-4" />
-                      <span className="text-sm">Logout</span>
+                      {isLoggingOut ? (
+                        <Loader className="w-4 h-4 animate-spin" />
+                      ) : (
+                        <LogOut className="w-4 h-4" />
+                      )}
+                      <span className="text-sm">
+                        {isLoggingOut ? "Logging out..." : "Logout"}
+                      </span>
                     </motion.button>
                   </div>
                 </motion.div>
@@ -94,3 +110,5 @@ export default function TopNavbar({
     </div>
   );
 }
+
+export default memo(TopNavbar);

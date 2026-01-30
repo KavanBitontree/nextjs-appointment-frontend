@@ -6,17 +6,17 @@ import { createPortal } from "react-dom";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
 import {
-  Search,
-  Filter,
-  ChevronUp,
-  ChevronDown,
   MapPin,
   List,
   Map as MapIcon,
   Navigation,
   X,
+  Loader,
 } from "lucide-react";
 import DoctorsList from "./DoctorsList";
+import DoctorSearchBar from "./DoctorSearchBar";
+import DoctorFilterBar from "./DoctorFilterBar";
+import DoctorPagination from "./DoctorPagination";
 import { api } from "@/lib/axios";
 
 interface Doctor {
@@ -85,6 +85,7 @@ export default function ShowDoctorsClient({
   const [mapInstance, setMapInstance] = useState<any>(null);
   const [markers, setMarkers] = useState<any[]>([]);
   const [routingControl, setRoutingControl] = useState<any>(null);
+  const [locationLoading, setLocationLoading] = useState(false);
 
   const [filters, setFilters] = useState<DoctorFilters>({
     search_name: searchParams.search_name || "",
@@ -96,7 +97,6 @@ export default function ShowDoctorsClient({
     limit: parseInt(searchParams.limit || "10"),
   });
 
-  const [expandedFilters, setExpandedFilters] = useState(false);
 
   // Fetch doctors data when filters change
   useEffect(() => {
@@ -281,32 +281,17 @@ export default function ShowDoctorsClient({
               <button 
                 onclick="window.selectDoctorFromMap(${doctor.id}, ${lat}, ${lon})"
                 style="
-                  background: #2563eb;
+                  background: #0f172a;
                   color: white;
                   border: none;
                   padding: 6px 12px;
                   border-radius: 6px;
                   cursor: pointer;
                   font-size: 12px;
-                  flex: 1;
+                  width: 100%;
                 "
               >
                 View Details
-              </button>
-              <button 
-                onclick="window.clearRouteFromMap()"
-                style="
-                  background: #ef4444;
-                  color: white;
-                  border: none;
-                  padding: 6px 12px;
-                  border-radius: 6px;
-                  cursor: pointer;
-                  font-size: 12px;
-                  flex: 1;
-                "
-              >
-                Untrack
               </button>
             </div>
           </div>
@@ -336,10 +321,6 @@ export default function ShowDoctorsClient({
       }
     };
 
-    // Global function for untrack button in popup
-    (window as any).clearRouteFromMap = () => {
-      clearRoute();
-    };
   }, [mapInstance, doctorsData, mapLoaded]);
 
   const clearRoute = () => {
@@ -380,12 +361,15 @@ export default function ShowDoctorsClient({
         return;
       }
 
+      setLocationLoading(true);
+
       navigator.geolocation.getCurrentPosition(
         (position) => {
           const lat = position.coords.latitude;
           const lon = position.coords.longitude;
 
           setUserLocation({ lat, lon });
+          setLocationLoading(false);
 
           const L = (window as any).L;
           if (mapInstance && L) {
@@ -416,6 +400,7 @@ export default function ShowDoctorsClient({
           resolve({ lat, lon });
         },
         (error) => {
+          setLocationLoading(false);
           alert(
             "Unable to retrieve your location. Please enable location access.",
           );
@@ -480,7 +465,7 @@ export default function ShowDoctorsClient({
       lineOptions: {
         styles: [
           {
-            color: "#2563eb",
+            color: "#0f172a",
             weight: 6,
             opacity: 0.8,
           },
@@ -525,14 +510,19 @@ export default function ShowDoctorsClient({
     });
   };
 
-  const handleSortChange = (field: string) => {
-    if (filters.sort_by === field) {
-      updateFilters({
-        sort_order: filters.sort_order === "asc" ? "desc" : "asc",
-      });
-    } else {
-      updateFilters({ sort_by: field, sort_order: "asc" });
-    }
+  const handleSearchChange = (searchName: string, searchAddress: string) => {
+    updateFilters({
+      search_name: searchName,
+      search_address: searchAddress,
+    });
+  };
+
+  const handleFilterChange = (newFilters: {
+    filter_speciality?: string;
+    sort_by?: string;
+    sort_order?: string;
+  }) => {
+    updateFilters(newFilters);
   };
 
   const handlePageChange = (newSkip: number) => {
@@ -589,7 +579,7 @@ export default function ShowDoctorsClient({
           onClick={() => setViewMode("list")}
           className={`flex items-center gap-2 px-6 py-3 rounded-lg font-medium transition-colors ${
             viewMode === "list"
-              ? "bg-blue-600 text-white"
+              ? "bg-slate-900 text-white"
               : "bg-white text-slate-700 border border-slate-300 hover:bg-slate-50"
           }`}
         >
@@ -600,7 +590,7 @@ export default function ShowDoctorsClient({
           onClick={() => setViewMode("map")}
           className={`flex items-center gap-2 px-6 py-3 rounded-lg font-medium transition-colors ${
             viewMode === "map"
-              ? "bg-blue-600 text-white"
+              ? "bg-slate-900 text-white"
               : "bg-white text-slate-700 border border-slate-300 hover:bg-slate-50"
           }`}
         >
@@ -619,10 +609,20 @@ export default function ShowDoctorsClient({
                 console.error("Error getting location:", error);
               }
             }}
-            className="flex items-center gap-2 px-6 py-3 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors font-medium ml-auto"
+            disabled={locationLoading}
+            className="flex items-center gap-2 px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium ml-auto disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            <Navigation className="w-5 h-5" />
-            {userLocation ? "Location Enabled ✓" : "Enable My Location"}
+            {locationLoading ? (
+              <>
+                <Loader className="w-5 h-5 animate-spin" />
+                Loading...
+              </>
+            ) : (
+              <>
+                <Navigation className="w-5 h-5" />
+                {userLocation ? "Location Enabled ✓" : "Enable My Location"}
+              </>
+            )}
           </button>
         )}
       </div>
@@ -631,136 +631,18 @@ export default function ShowDoctorsClient({
         <>
           {/* Search and Filter Bar */}
           <div className="bg-white rounded-2xl p-6 border border-slate-200 mb-6">
-            {/* Primary Search Fields */}
-            <div className="grid md:grid-cols-2 gap-4 mb-4">
-              {/* Doctor Name Search */}
-              <div className="relative">
-                <label className="block text-sm font-medium text-slate-700 mb-2">
-                  Doctor Name
-                </label>
-                <div className="relative">
-                  <Search className="absolute left-3 top-3 w-5 h-5 text-slate-400" />
-                  <input
-                    type="text"
-                    placeholder="Search by doctor name..."
-                    value={filters.search_name}
-                    onChange={(e) =>
-                      updateFilters({ search_name: e.target.value })
-                    }
-                    className="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                </div>
-              </div>
-
-              {/* Address Search */}
-              <div className="relative">
-                <label className="block text-sm font-medium text-slate-700 mb-2">
-                  Clinic Address
-                </label>
-                <div className="relative">
-                  <MapPin className="absolute left-3 top-3 w-5 h-5 text-slate-400" />
-                  <input
-                    type="text"
-                    placeholder="Search by clinic address..."
-                    value={filters.search_address}
-                    onChange={(e) =>
-                      updateFilters({ search_address: e.target.value })
-                    }
-                    className="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* Advanced Filters Toggle */}
-            <button
-              onClick={() => setExpandedFilters(!expandedFilters)}
-              className="flex items-center gap-2 text-blue-600 hover:text-blue-700 font-medium text-sm"
-            >
-              <Filter className="w-4 h-4" />
-              {expandedFilters ? "Hide" : "Show"} Advanced Filters
-              {expandedFilters ? (
-                <ChevronUp className="w-4 h-4" />
-              ) : (
-                <ChevronDown className="w-4 h-4" />
-              )}
-            </button>
-
-            {/* Advanced Filters */}
-            {expandedFilters && (
-              <motion.div
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: "auto" }}
-                exit={{ opacity: 0, height: 0 }}
-                className="mt-4 pt-4 border-t border-slate-200"
-              >
-                <div className="grid md:grid-cols-3 gap-4">
-                  {/* Speciality Filter */}
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-2">
-                      Speciality
-                    </label>
-                    <select
-                      value={filters.filter_speciality}
-                      onChange={(e) =>
-                        updateFilters({ filter_speciality: e.target.value })
-                      }
-                      className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    >
-                      <option value="">All Specialities</option>
-                      <option value="Cardiologist">Cardiologist</option>
-                      <option value="Dermatologist">Dermatologist</option>
-                      <option value="General Physician">
-                        General Physician
-                      </option>
-                      <option value="Orthopedic">Orthopedic</option>
-                      <option value="Neurologist">Neurologist</option>
-                    </select>
-                  </div>
-
-                  {/* Sort By */}
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-2">
-                      Sort By
-                    </label>
-                    <select
-                      value={filters.sort_by}
-                      onChange={(e) => handleSortChange(e.target.value)}
-                      className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    >
-                      <option value="name">Name</option>
-                      <option value="speciality">Speciality</option>
-                      <option value="opd_fees">Fees</option>
-                    </select>
-                  </div>
-
-                  {/* Sort Order */}
-                  <div className="flex items-end gap-2">
-                    <button
-                      onClick={() =>
-                        updateFilters({
-                          sort_order:
-                            filters.sort_order === "asc" ? "desc" : "asc",
-                        })
-                      }
-                      className="flex-1 px-4 py-2 bg-blue-100 text-blue-700 border border-blue-300 rounded-lg hover:bg-blue-200 transition-colors font-medium text-sm"
-                    >
-                      {filters.sort_order === "asc"
-                        ? "Ascending"
-                        : "Descending"}
-                    </button>
-                  </div>
-                </div>
-
-                {/* Reset Button */}
-                <button
-                  onClick={resetFilters}
-                  className="mt-4 px-4 py-2 text-slate-700 border border-slate-300 rounded-lg hover:bg-slate-100 transition-colors text-sm font-medium"
-                >
-                  Reset Filters
-                </button>
-              </motion.div>
-            )}
+            <DoctorSearchBar
+              searchName={filters.search_name || ""}
+              searchAddress={filters.search_address || ""}
+              onSearchChange={handleSearchChange}
+            />
+            <DoctorFilterBar
+              speciality={filters.filter_speciality || ""}
+              sortBy={filters.sort_by || "name"}
+              sortOrder={filters.sort_order || "asc"}
+              onFilterChange={handleFilterChange}
+              onReset={resetFilters}
+            />
           </div>
 
           {/* Doctors List */}
@@ -772,17 +654,36 @@ export default function ShowDoctorsClient({
             loading={loading}
             error={error}
           />
+
+          {/* Pagination */}
+          {doctorsData && (
+            <DoctorPagination
+              currentPage={
+                filters.skip
+                  ? Math.floor(filters.skip / (filters.limit || 10)) + 1
+                  : 1
+              }
+              totalPages={Math.ceil(
+                (doctorsData.total || 0) / (filters.limit || 10),
+              )}
+              total={doctorsData.total || 0}
+              currentCount={doctorsData.doctors.length}
+              onPageChange={handlePageChange}
+              isPending={isPending}
+              limit={filters.limit || 10}
+            />
+          )}
         </>
       )}
 
       {viewMode === "map" && (
         <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-lg">
-          <div className="bg-gradient-to-r from-blue-600 to-blue-700 p-4 text-white">
+          <div className="bg-slate-900 p-4 text-white">
             <h2 className="text-lg font-bold flex items-center gap-2">
               <MapPin className="w-5 h-5" />
               Interactive Map - {doctorsData?.doctors.length || 0} Doctors
             </h2>
-            <p className="text-sm text-blue-100 mt-1">
+            <p className="text-sm text-slate-300 mt-1">
               Click on markers to see details and get directions
             </p>
           </div>
@@ -803,9 +704,9 @@ export default function ShowDoctorsClient({
           <motion.div
             initial={{ opacity: 0, y: 50 }}
             animate={{ opacity: 1, y: 0 }}
-            className="fixed bottom-6 left-1/2 transform -translate-x-1/2 
+            className="fixed top-6 right-6 
                  bg-white rounded-xl shadow-2xl border border-slate-200 
-                 p-6 max-w-md w-full mx-4 z-[1000]"
+                 p-6 max-w-sm w-full z-[1000]"
           >
             <button
               onClick={clearRoute}
@@ -815,8 +716,8 @@ export default function ShowDoctorsClient({
             </button>
 
             <div className="flex items-center gap-3 mb-4">
-              <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
-                <Navigation className="w-6 h-6 text-blue-600" />
+              <div className="w-12 h-12 bg-slate-900 rounded-full flex items-center justify-center">
+                <Navigation className="w-6 h-6 text-white" />
               </div>
               <div>
                 <h3 className="font-bold text-slate-900">
@@ -850,8 +751,8 @@ export default function ShowDoctorsClient({
             )}
 
             {routingControl && (
-              <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg mb-3">
-                <p className="text-sm text-blue-800 flex items-center gap-2">
+              <div className="p-3 bg-green-50 border border-green-200 rounded-lg mb-3">
+                <p className="text-sm text-green-800 flex items-center gap-2">
                   <Navigation className="w-4 h-4" />
                   Route is displayed on the map
                 </p>
@@ -879,8 +780,8 @@ export default function ShowDoctorsClient({
                         selectedDoctor.longitude!,
                       )
                     }
-                    className="flex-1 px-4 py-2 bg-blue-600 text-white 
-                         rounded-lg hover:bg-blue-700 transition-colors 
+                    className="flex-1 px-4 py-2 bg-slate-900 text-white 
+                         rounded-lg hover:bg-slate-800 transition-colors 
                          font-medium text-sm flex items-center justify-center gap-2"
                   >
                     <Navigation className="w-4 h-4" />

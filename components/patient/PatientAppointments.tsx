@@ -46,9 +46,9 @@ const mockAppointments: Appointment[] = [
 const getStatusColor = (status: string) => {
   switch (status) {
     case "scheduled":
-      return "bg-blue-100 text-blue-700 border-blue-200";
+      return "bg-slate-100 text-slate-900 border-slate-300";
     case "completed":
-      return "bg-emerald-100 text-emerald-700 border-emerald-200";
+      return "bg-green-100 text-green-700 border-green-200";
     case "cancelled":
       return "bg-red-100 text-red-700 border-red-200";
     default:
@@ -105,15 +105,15 @@ export default function PatientAppointments() {
 
                 <div className="grid md:grid-cols-3 gap-4">
                   <div className="flex items-center gap-2 text-slate-700">
-                    <Calendar className="w-4 h-4 text-blue-600" />
+                    <Calendar className="w-4 h-4 text-slate-900" />
                     <span className="text-sm">{appointment.date}</span>
                   </div>
                   <div className="flex items-center gap-2 text-slate-700">
-                    <Clock className="w-4 h-4 text-blue-600" />
+                    <Clock className="w-4 h-4 text-slate-900" />
                     <span className="text-sm">{appointment.time}</span>
                   </div>
                   <div className="flex items-center gap-2 text-slate-700">
-                    <MapPin className="w-4 h-4 text-blue-600" />
+                    <MapPin className="w-4 h-4 text-slate-900" />
                     <span className="text-sm">{appointment.location}</span>
                   </div>
                 </div>

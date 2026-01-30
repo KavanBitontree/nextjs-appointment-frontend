@@ -85,7 +85,7 @@ export default function PatientProfile({ initialData }: PatientProfileProps) {
           animate={{ rotate: 360 }}
           transition={{ duration: 2, repeat: Infinity }}
         >
-          <Loader className="w-8 h-8 text-blue-600" />
+          <Loader className="w-8 h-8 text-slate-900" />
         </motion.div>
       </div>
     );
@@ -117,7 +117,7 @@ export default function PatientProfile({ initialData }: PatientProfileProps) {
       >
         {/* Avatar Section */}
         <div className="flex items-center gap-6 mb-8">
-          <div className="w-24 h-24 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center">
+          <div className="w-24 h-24 bg-slate-900 rounded-full flex items-center justify-center">
             <User className="w-12 h-12 text-white" />
           </div>
           <div>
@@ -128,7 +128,7 @@ export default function PatientProfile({ initialData }: PatientProfileProps) {
             <p
               className={`text-xs font-semibold mt-2 px-3 py-1 rounded-full w-fit ${
                 patientData?.is_active
-                  ? "bg-emerald-100 text-emerald-700"
+                  ? "bg-green-100 text-green-700"
                   : "bg-slate-100 text-slate-700"
               }`}
             >
@@ -144,10 +144,10 @@ export default function PatientProfile({ initialData }: PatientProfileProps) {
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.2 }}
-            className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-4 border border-blue-200"
+            className="bg-slate-50 rounded-xl p-4 border border-slate-200"
           >
             <div className="flex items-center gap-3 mb-2">
-              <Mail className="w-5 h-5 text-blue-600" />
+              <Mail className="w-5 h-5 text-slate-900" />
               <p className="text-sm text-slate-600 font-medium">Email</p>
             </div>
             <p className="text-lg font-semibold text-slate-900 break-all">
@@ -160,10 +160,10 @@ export default function PatientProfile({ initialData }: PatientProfileProps) {
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.2 }}
-            className="bg-gradient-to-br from-emerald-50 to-emerald-100 rounded-xl p-4 border border-emerald-200"
+            className="bg-slate-50 rounded-xl p-4 border border-slate-200"
           >
             <div className="flex items-center gap-3 mb-2">
-              <Phone className="w-5 h-5 text-emerald-600" />
+              <Phone className="w-5 h-5 text-slate-900" />
               <p className="text-sm text-slate-600 font-medium">Phone</p>
             </div>
             <p className="text-lg font-semibold text-slate-900">
@@ -176,10 +176,10 @@ export default function PatientProfile({ initialData }: PatientProfileProps) {
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.3 }}
-            className="bg-gradient-to-br from-orange-50 to-orange-100 rounded-xl p-4 border border-orange-200"
+            className="bg-slate-50 rounded-xl p-4 border border-slate-200"
           >
             <div className="flex items-center gap-3 mb-2">
-              <Calendar className="w-5 h-5 text-orange-600" />
+              <Calendar className="w-5 h-5 text-slate-900" />
               <p className="text-sm text-slate-600 font-medium">
                 Date of Birth
               </p>
@@ -194,10 +194,10 @@ export default function PatientProfile({ initialData }: PatientProfileProps) {
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.3 }}
-            className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl p-4 border border-purple-200"
+            className="bg-slate-50 rounded-xl p-4 border border-slate-200"
           >
             <div className="flex items-center gap-3 mb-2">
-              <MapPin className="w-5 h-5 text-purple-600" />
+              <MapPin className="w-5 h-5 text-slate-900" />
               <p className="text-sm text-slate-600 font-medium">Address</p>
             </div>
             <p className="text-lg font-semibold text-slate-900">
@@ -212,19 +212,19 @@ export default function PatientProfile({ initialData }: PatientProfileProps) {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.4 }}
-        className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl p-8 border border-slate-200"
+        className="bg-white rounded-xl p-8 border border-slate-200 shadow-sm"
       >
         <h3 className="text-lg font-bold text-slate-900 mb-4">
           Account Information
         </h3>
         <div className="grid md:grid-cols-2 gap-4">
-          <div className="bg-white rounded-lg p-4 border border-slate-200">
+          <div className="bg-slate-50 rounded-lg p-4 border border-slate-200">
             <p className="text-xs text-slate-600 mb-1">User ID</p>
             <p className="text-sm font-semibold text-slate-900">
               {patientData?.id}
             </p>
           </div>
-          <div className="bg-white rounded-lg p-4 border border-slate-200">
+          <div className="bg-slate-50 rounded-lg p-4 border border-slate-200">
             <p className="text-xs text-slate-600 mb-1">Member Since</p>
             <p className="text-sm font-semibold text-slate-900">
               {patientData?.created_at
