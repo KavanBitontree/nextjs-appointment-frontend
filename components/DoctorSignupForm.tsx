@@ -718,10 +718,9 @@ export default function DoctorSignupForm() {
               >
                 {suggestions.map((suggestion: any, idx: number) => (
                   <button
-                    key={idx}
                     type="button"
-                    onClick={(e) => {
-                      e.preventDefault();
+                    onMouseDown={(e) => {
+                      e.preventDefault(); // prevents blur
                       handleSelectSuggestion(suggestion);
                     }}
                     className="w-full text-left px-4 py-3 hover:bg-blue-50 transition-colors border-b border-slate-100 last:border-b-0 flex items-start gap-3"
