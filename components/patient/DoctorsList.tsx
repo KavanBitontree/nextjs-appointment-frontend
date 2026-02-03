@@ -1,12 +1,16 @@
 "use client";
 
+import { useState } from "react";
 import { motion } from "framer-motion";
+import { useRouter } from "next/navigation";
 import {
   Stethoscope,
   MapPin,
-  DollarSign,
+  IndianRupee,
   AlertCircle,
   Loader,
+  Loader2,
+  Calendar,
 } from "lucide-react";
 
 interface Doctor {
@@ -54,15 +58,18 @@ export default function DoctorsList({
   loading,
   error,
 }: DoctorListProps) {
-  console.log("DoctorsList received initialData:", initialData);
-  console.log("Is loading:", loading, "isPending:", isPending);
+  const router = useRouter();
+  const [navigatingToDoctorId, setNavigatingToDoctorId] = useState<
+    number | null
+  >(null);
 
   const doctors = initialData?.doctors || [];
   const total = initialData?.total || 0;
 
-  console.log("Doctors array:", doctors);
-  console.log("Total:", total);
-
+  const handleBookNow = (doctorId: number) => {
+    setNavigatingToDoctorId(doctorId);
+    router.push(`/patient/${doctorId}/appointment-form`);
+  };
 
   if (isPending || loading) {
     return (
@@ -109,10 +116,10 @@ export default function DoctorsList({
 
   return (
     <>
-      {/* Doctors Grid */}
       <div className="grid gap-6 mb-8">
         {doctors.map((doctor, index) => {
-          console.log("Rendering doctor:", doctor);
+          const isNavigating = navigatingToDoctorId === doctor.id;
+
           return (
             <motion.div
               key={doctor.id}
@@ -149,7 +156,7 @@ export default function DoctorsList({
 
                     {/* Fees */}
                     <div className="flex items-start gap-3">
-                      <DollarSign className="w-5 h-5 text-green-600 flex-shrink-0 mt-1" />
+                      <IndianRupee className="w-5 h-5 text-green-600 flex-shrink-0 mt-1" />
                       <div>
                         <p className="text-xs text-slate-600">OPD Fees</p>
                         <p className="text-sm font-medium text-slate-900">
@@ -175,18 +182,38 @@ export default function DoctorsList({
 
                 {/* Book Button */}
                 <motion.button
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  className="px-6 py-2 bg-slate-900 text-white rounded-xl hover:bg-slate-800 transition-colors font-medium text-sm flex-shrink-0 h-fit"
+                  onClick={() => handleBookNow(doctor.id)}
+                  disabled={isNavigating}
+                  whileHover={!isNavigating ? { scale: 1.05 } : {}}
+                  whileTap={!isNavigating ? { scale: 0.95 } : {}}
+                  className={`
+                    px-6 py-3 rounded-xl transition-colors font-medium text-sm 
+                    flex-shrink-0 h-fit flex items-center gap-2 min-w-[140px] justify-center
+                    ${
+                      isNavigating
+                        ? "bg-slate-700 cursor-wait"
+                        : "bg-slate-900 hover:bg-slate-800"
+                    }
+                    text-white
+                  `}
                 >
-                  Book Now
+                  {isNavigating ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      Loading...
+                    </>
+                  ) : (
+                    <>
+                      <Calendar className="w-4 h-4" />
+                      Book Now
+                    </>
+                  )}
                 </motion.button>
               </div>
             </motion.div>
           );
         })}
       </div>
-
     </>
   );
 }

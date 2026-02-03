@@ -97,7 +97,6 @@ export default function ShowDoctorsClient({
     limit: parseInt(searchParams.limit || "10"),
   });
 
-
   // Fetch doctors data when filters change
   useEffect(() => {
     const fetchDoctors = async () => {
@@ -278,7 +277,7 @@ export default function ShowDoctorsClient({
             <small>${doctor.address}</small><br/>
             <small>Fees: ₹${doctor.opd_fees}</small><br/><br/>
             <div style="display: flex; gap: 8px;">
-              <button 
+              <button
                 onclick="window.selectDoctorFromMap(${doctor.id}, ${lat}, ${lon})"
                 style="
                   background: #0f172a;
@@ -320,7 +319,6 @@ export default function ShowDoctorsClient({
         }
       }
     };
-
   }, [mapInstance, doctorsData, mapLoaded]);
 
   const clearRoute = () => {
@@ -490,6 +488,9 @@ export default function ShowDoctorsClient({
   };
 
   const updateFilters = (newFilters: Partial<DoctorFilters>) => {
+    // Save current scroll position
+    const scrollPosition = window.scrollY || window.pageYOffset;
+
     const updated = { ...filters, ...newFilters, skip: 0 };
     setFilters(updated);
 
@@ -506,7 +507,11 @@ export default function ShowDoctorsClient({
     queryParams.set("limit", String(updated.limit || 10));
 
     startTransition(() => {
-      router.push(`${pathname}?${queryParams.toString()}`);
+      router.push(`${pathname}?${queryParams.toString()}`, {
+        scroll: false,
+      });
+      // Restore scroll position after navigation
+      window.scrollTo({ top: scrollPosition, behavior: "auto" });
     });
   };
 
@@ -526,6 +531,9 @@ export default function ShowDoctorsClient({
   };
 
   const handlePageChange = (newSkip: number) => {
+    // Save current scroll position
+    const scrollPosition = window.scrollY || window.pageYOffset;
+
     setFilters((prev) => ({ ...prev, skip: newSkip }));
 
     const queryParams = new URLSearchParams();
@@ -541,11 +549,18 @@ export default function ShowDoctorsClient({
     queryParams.set("limit", String(filters.limit || 10));
 
     startTransition(() => {
-      router.push(`${pathname}?${queryParams.toString()}`);
+      router.push(`${pathname}?${queryParams.toString()}`, {
+        scroll: false,
+      });
+      // Restore scroll position after navigation
+      window.scrollTo({ top: scrollPosition, behavior: "auto" });
     });
   };
 
   const resetFilters = () => {
+    // Save current scroll position
+    const scrollPosition = window.scrollY || window.pageYOffset;
+
     setFilters({
       search_name: "",
       search_address: "",
@@ -556,7 +571,11 @@ export default function ShowDoctorsClient({
       limit: 10,
     });
     startTransition(() => {
-      router.push(pathname);
+      router.push(pathname, {
+        scroll: false,
+      });
+      // Restore scroll position after navigation
+      window.scrollTo({ top: scrollPosition, behavior: "auto" });
     });
   };
 
@@ -704,8 +723,8 @@ export default function ShowDoctorsClient({
           <motion.div
             initial={{ opacity: 0, y: 50 }}
             animate={{ opacity: 1, y: 0 }}
-            className="fixed top-6 right-6 
-                 bg-white rounded-xl shadow-2xl border border-slate-200 
+            className="fixed top-6 right-6
+                 bg-white rounded-xl shadow-2xl border border-slate-200
                  p-6 max-w-sm w-full z-[1000]"
           >
             <button
@@ -763,8 +782,8 @@ export default function ShowDoctorsClient({
               {routingControl ? (
                 <button
                   onClick={clearRoute}
-                  className="flex-1 px-4 py-2 bg-red-600 text-white 
-                       rounded-lg hover:bg-red-700 transition-colors 
+                  className="flex-1 px-4 py-2 bg-red-600 text-white
+                       rounded-lg hover:bg-red-700 transition-colors
                        font-medium text-sm flex items-center justify-center gap-2"
                 >
                   <X className="w-4 h-4" />
@@ -780,8 +799,8 @@ export default function ShowDoctorsClient({
                         selectedDoctor.longitude!,
                       )
                     }
-                    className="flex-1 px-4 py-2 bg-slate-900 text-white 
-                         rounded-lg hover:bg-slate-800 transition-colors 
+                    className="flex-1 px-4 py-2 bg-slate-900 text-white
+                         rounded-lg hover:bg-slate-800 transition-colors
                          font-medium text-sm flex items-center justify-center gap-2"
                   >
                     <Navigation className="w-4 h-4" />
