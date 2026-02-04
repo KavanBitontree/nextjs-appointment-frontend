@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { api } from "@/lib/axios";
 
@@ -24,7 +24,8 @@ interface AppointmentDetails {
   slot_time: string;
 }
 
-export default function PaymentSuccessPage() {
+// Separate component that uses useSearchParams
+function PaymentSuccessContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const appointmentId = searchParams.get("appointment_id");
@@ -32,8 +33,10 @@ export default function PaymentSuccessPage() {
   const token = searchParams.get("token");
 
   const [verifying, setVerifying] = useState(true);
-  const [paymentStatus, setPaymentStatus] = useState<PaymentVerification | null>(null);
-  const [appointmentDetails, setAppointmentDetails] = useState<AppointmentDetails | null>(null);
+  const [paymentStatus, setPaymentStatus] =
+    useState<PaymentVerification | null>(null);
+  const [appointmentDetails, setAppointmentDetails] =
+    useState<AppointmentDetails | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -49,10 +52,11 @@ export default function PaymentSuccessPage() {
         // Include token in query params if present (from email link)
         const tokenParam = token ? `&token=${token}` : "";
         const verifyUrl = `/payment/verify?appointment_id=${appointmentId}&session_id=${sessionId}${tokenParam}`;
-        
+
         // Use api.get which will handle authentication automatically
         // Token in query params will be used by backend if present
-        const { data: verifyData } = await api.get<PaymentVerification>(verifyUrl);
+        const { data: verifyData } =
+          await api.get<PaymentVerification>(verifyUrl);
         setPaymentStatus(verifyData);
 
         // If payment is successful, fetch appointment details
@@ -61,7 +65,7 @@ export default function PaymentSuccessPage() {
             const detailsUrl = token
               ? `/appointments/${appointmentId}/payment-details?token=${token}`
               : `/appointments/${appointmentId}/payment-details`;
-            
+
             const { data } = await api.get<AppointmentDetails>(detailsUrl);
             setAppointmentDetails(data);
           } catch (err) {
@@ -87,7 +91,9 @@ export default function PaymentSuccessPage() {
           <h1 className="text-2xl font-semibold text-gray-900">
             Verifying Payment...
           </h1>
-          <p className="text-gray-500 mt-2">Please wait while we confirm your payment</p>
+          <p className="text-gray-500 mt-2">
+            Please wait while we confirm your payment
+          </p>
         </div>
       </div>
     );
@@ -126,7 +132,8 @@ export default function PaymentSuccessPage() {
             Payment Not Confirmed
           </h1>
           <p className="text-gray-600 mb-6">
-            {paymentStatus.error || "Payment verification failed. Please contact support if you were charged."}
+            {paymentStatus.error ||
+              "Payment verification failed. Please contact support if you were charged."}
           </p>
           <div className="flex gap-3 justify-center">
             <button
@@ -136,7 +143,11 @@ export default function PaymentSuccessPage() {
               View My Appointments
             </button>
             <button
-              onClick={() => router.push(`/patient/payment?appointment_id=${appointmentId}${token ? `&token=${token}` : ""}`)}
+              onClick={() =>
+                router.push(
+                  `/patient/payment?appointment_id=${appointmentId}${token ? `&token=${token}` : ""}`,
+                )
+              }
               className="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition"
             >
               Try Again
@@ -187,7 +198,8 @@ export default function PaymentSuccessPage() {
                 <strong>✅ Payment Confirmed</strong>
               </p>
               <p className="text-green-700 text-sm mt-1">
-                Your payment has been processed successfully. Your appointment is now confirmed.
+                Your payment has been processed successfully. Your appointment
+                is now confirmed.
               </p>
             </div>
 
@@ -244,10 +256,12 @@ export default function PaymentSuccessPage() {
                 Payment Status
               </h3>
               <p className="text-sm text-blue-800">
-                <strong>Status:</strong> {paymentStatus.payment_status || paymentStatus.status}
+                <strong>Status:</strong>{" "}
+                {paymentStatus.payment_status || paymentStatus.status}
               </p>
               <p className="text-sm text-blue-800 mt-1">
-                <strong>Appointment Status:</strong> {paymentStatus.appointment_status}
+                <strong>Appointment Status:</strong>{" "}
+                {paymentStatus.appointment_status}
               </p>
             </div>
 
@@ -286,3 +300,21 @@ export default function PaymentSuccessPage() {
   );
 }
 
+// Main component with Suspense boundary
+export default function PaymentSuccessPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 to-blue-50">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-green-600 mx-auto mb-6"></div>
+            <h1 className="text-2xl font-semibold text-gray-900">Loading...</h1>
+            <p className="text-gray-500 mt-2">Please wait</p>
+          </div>
+        </div>
+      }
+    >
+      <PaymentSuccessContent />
+    </Suspense>
+  );
+}
