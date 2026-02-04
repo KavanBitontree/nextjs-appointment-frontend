@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import { api } from "@/lib/axios";
 import { useRouter } from "next/navigation";
+import { useToast } from "@/components/Toast";
 
 interface Slot {
   id: number;
@@ -73,7 +74,14 @@ const STATUS_COLORS = {
   },
 };
 
-// ✅ FIX: Helper to get date string in YYYY-MM-DD format without timezone conversion
+// Allowed file formats for medical reports
+const ALLOWED_FORMATS = {
+  types: ["application/pdf", "image/jpeg", "image/png"],
+  extensions: ["pdf", "jpg", "jpeg", "png"],
+  display: "PDF, JPEG, PNG",
+};
+
+// Helper to get date string in YYYY-MM-DD format without timezone conversion
 function getLocalDateString(year: number, month: number, day: number): string {
   const yyyy = year.toString();
   const mm = (month + 1).toString().padStart(2, "0");
@@ -81,7 +89,7 @@ function getLocalDateString(year: number, month: number, day: number): string {
   return `${yyyy}-${mm}-${dd}`;
 }
 
-// ✅ FIX: Helper to parse YYYY-MM-DD string to local date components
+// Helper to parse YYYY-MM-DD string to local date components
 function parseDateString(dateString: string): {
   year: number;
   month: number;
@@ -98,6 +106,7 @@ export default function AppointmentForm({
   opdFees,
 }: AppointmentFormProps) {
   const router = useRouter();
+  const { showToast } = useToast();
   const [slots, setSlots] = useState<Slot[]>(initialSlots);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [selectedSlotId, setSelectedSlotId] = useState<number | null>(null);
@@ -160,6 +169,10 @@ export default function AppointmentForm({
         setError(
           "Your slot reservation has expired. Please select another slot.",
         );
+        showToast(
+          "Slot reservation expired. Please select another slot.",
+          "warning",
+        );
         // Refresh slots for the selected date
         if (selectedDate) {
           fetchSlotsForDate(selectedDate);
@@ -168,7 +181,7 @@ export default function AppointmentForm({
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [heldSlotExpiry, selectedDate]);
+  }, [heldSlotExpiry, selectedDate, showToast]);
 
   // Fetch fresh slots for a specific date
   const fetchSlotsForDate = useCallback(
@@ -179,10 +192,9 @@ export default function AppointmentForm({
       try {
         const params = new URLSearchParams({
           doctor_id: doctorId.toString(),
-          date: date, // Send YYYY-MM-DD string directly
+          date: date,
         });
 
-        // ✅ FIX: Use the by-date endpoint for single date queries
         const response = await api.get(
           `/patient/slots/by-date?${params.toString()}`,
         );
@@ -195,11 +207,12 @@ export default function AppointmentForm({
       } catch (err: any) {
         console.error("Error fetching slots:", err);
         setError("Failed to fetch available slots. Please try again.");
+        showToast("Failed to fetch slots", "error");
       } finally {
         setFetchingSlots(false);
       }
     },
-    [doctorId],
+    [doctorId, showToast],
   );
 
   // Hold a slot when selected
@@ -229,6 +242,10 @@ export default function AppointmentForm({
         setHeldSlotExpiry(new Date(response.data.held_until));
         setTimeRemaining(response.data.time_remaining_seconds);
 
+        showToast(
+          "Slot reserved successfully! Complete booking within 10 minutes.",
+          "success",
+        );
         return true;
       } catch (err: any) {
         console.error("Error holding slot:", err);
@@ -237,6 +254,7 @@ export default function AppointmentForm({
           setError(
             "This slot was just booked by someone else. Please select another slot.",
           );
+          showToast("Slot unavailable. Please select another.", "error");
           // Refresh slots to show updated status
           const slotDate = slots.find((s) => s.id === slotId)?.date;
           if (slotDate) {
@@ -244,6 +262,7 @@ export default function AppointmentForm({
           }
         } else {
           setError("Failed to reserve this slot. Please try again.");
+          showToast("Failed to reserve slot", "error");
         }
 
         setSelectedSlotId(null);
@@ -252,7 +271,7 @@ export default function AppointmentForm({
         setHoldingSlot(false);
       }
     },
-    [slots, fetchSlotsForDate],
+    [slots, fetchSlotsForDate, showToast],
   );
 
   // Release held slot
@@ -322,7 +341,7 @@ export default function AppointmentForm({
     setSelectedSlotId(null);
   };
 
-  // ✅ FIX: Check if date is available without timezone conversion
+  // Check if date is available without timezone conversion
   const isDateAvailable = (day: number) => {
     const dateString = getLocalDateString(
       currentMonth.getFullYear(),
@@ -332,7 +351,7 @@ export default function AppointmentForm({
     return datesWithFreeSlots.includes(dateString);
   };
 
-  // ✅ FIX: Check if date is in the past without timezone conversion
+  // Check if date is in the past without timezone conversion
   const isDateInPast = (day: number) => {
     const today = new Date();
     const todayString = getLocalDateString(
@@ -350,7 +369,7 @@ export default function AppointmentForm({
     return dateString < todayString;
   };
 
-  // ✅ FIX: Handle date selection without timezone conversion
+  // Handle date selection without timezone conversion
   const handleDateSelect = async (day: number) => {
     const dateString = getLocalDateString(
       currentMonth.getFullYear(),
@@ -395,14 +414,22 @@ export default function AppointmentForm({
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      const validTypes = ["application/pdf", "image/jpeg", "image/png"];
-      if (!validTypes.includes(file.type)) {
-        setError("Please upload a PDF or image file (JPEG, PNG)");
+      const fileExtension = file.name.split(".").pop()?.toLowerCase();
+
+      if (
+        !ALLOWED_FORMATS.types.includes(file.type) ||
+        !ALLOWED_FORMATS.extensions.includes(fileExtension || "")
+      ) {
+        setError(
+          `Invalid file format. Allowed formats: ${ALLOWED_FORMATS.display}`,
+        );
+        showToast(`Please upload ${ALLOWED_FORMATS.display} only`, "error");
         return;
       }
 
       if (file.size > 5 * 1024 * 1024) {
         setError("File size must be less than 5MB");
+        showToast("File size exceeds 5MB limit", "error");
         return;
       }
 
@@ -417,12 +444,14 @@ export default function AppointmentForm({
 
     if (!selectedSlotId) {
       setError("Please select a time slot");
+      showToast("Please select a time slot", "warning");
       return;
     }
 
     const selectedSlot = slots.find((s) => s.id === selectedSlotId);
     if (!selectedSlot?.held_by_current_user) {
       setError("Please hold a slot before booking");
+      showToast("Slot reservation expired", "error");
       return;
     }
 
@@ -430,37 +459,76 @@ export default function AppointmentForm({
 
     try {
       const formData = new FormData();
-      formData.append("doctor_id", doctorId.toString());
-      formData.append("slot_id", selectedSlotId.toString());
-
       if (reportFile) {
         formData.append("report", reportFile);
       }
 
-      await api.post("/patient/appointments", formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
+      // FIXED: Send slot_id as query parameter, not in form data
+      const response = await api.post(
+        `/appointments/request?slot_id=${selectedSlotId}`,
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
         },
-      });
+      );
 
-      router.push("/patient/dashboard?booking=success");
+      showToast(
+        "Appointment request sent successfully! Doctor will review within 48 hours.",
+        "success",
+        6000,
+      );
+
+      // Redirect to dashboard with success message
+      setTimeout(() => {
+        router.push("/patient/dashboard?booking=success");
+      }, 2000);
     } catch (err: any) {
       console.error("Error submitting appointment:", err);
 
-      if (err.response?.status === 409) {
-        setError(
-          "This slot is no longer available. Please select another slot.",
-        );
-        // Refresh slots
-        if (selectedDate) {
-          await fetchSlotsForDate(selectedDate);
+      // Extract error message from various possible error formats
+      let errorMessage = "Failed to submit appointment request";
+
+      if (err.response) {
+        // Backend returned an error response
+        if (err.response.status === 409) {
+          errorMessage =
+            "This slot is no longer available. Please select another slot.";
+          // Refresh slots
+          if (selectedDate) {
+            await fetchSlotsForDate(selectedDate);
+          }
+          setSelectedSlotId(null);
+        } else if (err.response.status === 400) {
+          // Validation error - handle nested error structure
+          const detail = err.response.data?.detail;
+          if (typeof detail === "object" && detail.message) {
+            errorMessage = detail.message;
+          } else if (typeof detail === "string") {
+            errorMessage = detail;
+          } else {
+            errorMessage = "Invalid request. Please check your input.";
+          }
+        } else if (err.response.status === 403) {
+          errorMessage = "You don't have permission to book this slot.";
+        } else if (err.response.status === 500) {
+          errorMessage =
+            err.response.data?.detail ||
+            "Server error. Please try again later.";
+        } else {
+          errorMessage =
+            err.response.data?.detail ||
+            err.response.data?.message ||
+            errorMessage;
         }
-        setSelectedSlotId(null);
-      } else {
-        setError(
-          err.response?.data?.detail || "Failed to submit appointment request",
-        );
+      } else if (err.request) {
+        // Request made but no response received
+        errorMessage = "Network error. Please check your connection.";
       }
+
+      setError(errorMessage);
+      showToast(errorMessage, "error", 5000);
     } finally {
       setSubmitting(false);
     }
@@ -714,28 +782,32 @@ export default function AppointmentForm({
         </h2>
 
         <div className="space-y-4">
-          <div className="border-2 border-dashed border-slate-300 rounded-lg p-6 text-center hover:border-emerald-500 transition-colors">
-            <input
-              type="file"
-              id="report-upload"
-              accept=".pdf,.jpg,.jpeg,.png"
-              onChange={handleFileChange}
-              className="hidden"
-            />
-            <label
-              htmlFor="report-upload"
-              className="cursor-pointer flex flex-col items-center gap-2"
-            >
-              <FileText className="w-12 h-12 text-slate-400" />
-              <span className="text-sm font-medium text-slate-700">
-                Click to upload or drag and drop
-              </span>
-              <span className="text-xs text-slate-500">
-                PDF or Image (Max 5MB)
-              </span>
-            </label>
-          </div>
+          {/* Only show upload option if no file is uploaded */}
+          {!reportFile && (
+            <div className="border-2 border-dashed border-slate-300 rounded-lg p-6 text-center hover:border-emerald-500 transition-colors">
+              <input
+                type="file"
+                id="report-upload"
+                accept=".pdf,.jpg,.jpeg,.png"
+                onChange={handleFileChange}
+                className="hidden"
+              />
+              <label
+                htmlFor="report-upload"
+                className="cursor-pointer flex flex-col items-center gap-2"
+              >
+                <FileText className="w-12 h-12 text-slate-400" />
+                <span className="text-sm font-medium text-slate-700">
+                  Click to upload or drag and drop
+                </span>
+                <span className="text-xs text-slate-500">
+                  {ALLOWED_FORMATS.display} only (Max 5MB)
+                </span>
+              </label>
+            </div>
+          )}
 
+          {/* Show uploaded file info */}
           {reportFile && (
             <motion.div
               initial={{ opacity: 0, y: 10 }}
@@ -757,6 +829,7 @@ export default function AppointmentForm({
                 type="button"
                 onClick={() => setReportFile(null)}
                 className="p-1 hover:bg-emerald-100 rounded transition-colors"
+                title="Remove file"
               >
                 <X className="w-5 h-5 text-slate-600" />
               </button>
@@ -795,16 +868,34 @@ export default function AppointmentForm({
           {submitting ? (
             <>
               <Loader2 className="w-5 h-5 animate-spin" />
-              Confirming Booking...
+              Sending Request...
             </>
           ) : (
             <>
               <CheckCircle2 className="w-5 h-5" />
-              Confirm Appointment
+              Send Request to Doctor
             </>
           )}
         </button>
       </div>
+
+      {/* Info Box */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        className="bg-blue-50 border border-blue-200 rounded-lg p-4 flex items-start gap-3"
+      >
+        <Info className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+        <div className="text-sm text-blue-800">
+          <p className="font-semibold mb-1">What happens next?</p>
+          <ul className="list-disc list-inside space-y-1">
+            <li>Doctor will review your request within 48 hours</li>
+            <li>You'll receive an email notification when doctor responds</li>
+            <li>Upon approval, proceed to payment to confirm appointment</li>
+            <li>Slot will be released if no action is taken within 48 hours</li>
+          </ul>
+        </div>
+      </motion.div>
     </form>
   );
 }

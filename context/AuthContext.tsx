@@ -1,8 +1,6 @@
 "use client";
 
-import React from "react";
-
-import {
+import React, {
   createContext,
   useCallback,
   useContext,
@@ -25,7 +23,7 @@ type AuthContextValue = {
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
-const getDashboardPath = (role?: string | null) => {
+export const getDashboardPath = (role?: string | null) => {
   if (role === "doctor") return "/doctor/dashboard";
   if (role === "patient") return "/patient/dashboard";
   return "/login";
@@ -34,11 +32,12 @@ const getDashboardPath = (role?: string | null) => {
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState<boolean>(true);
+  const [loading, setLoading] = useState(true);
   const [initialized, setInitialized] = useState(false);
 
   const loadUser = useCallback(async () => {
     const token = getAccessToken();
+
     if (!token) {
       setUser(null);
       setLoading(false);
@@ -48,13 +47,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setLoading(true);
     try {
       const { data } = await api.get<User>("/auth/me");
+
       const normalizedRole =
         typeof data.role === "string"
           ? (data.role.toLowerCase() as User["role"])
           : data.role;
+
       setUser({ ...data, role: normalizedRole });
     } catch {
-      // Token invalid or refresh failed; clear local state
       clearAuthData();
       setUser(null);
     } finally {
@@ -62,37 +62,36 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
-  // Only run once on mount
+  // run ONCE on mount
   useEffect(() => {
-    if (!initialized) {
-      loadUser();
-      setInitialized(true);
-    }
+    if (initialized) return;
+    setInitialized(true);
+    loadUser();
   }, [initialized, loadUser]);
 
-  // Keep in sync across tabs
+  // sync logout across tabs
   useEffect(() => {
-    const handler = (event: StorageEvent) => {
-      if (event.key === "access_token" && event.newValue === null) {
+    const onStorage = (e: StorageEvent) => {
+      if (e.key === "access_token" && !e.newValue) {
         setUser(null);
+        router.replace("/login");
       }
     };
 
-    window.addEventListener("storage", handler);
-    return () => window.removeEventListener("storage", handler);
-  }, []);
+    window.addEventListener("storage", onStorage);
+    return () => window.removeEventListener("storage", onStorage);
+  }, [router]);
 
   const logout = useCallback(
     async (redirectTo?: string) => {
       try {
         await api.post("/auth/logout");
       } catch {
-        console.warn("Logout request failed");
+        // ignore network errors
       } finally {
         clearAuthData();
         setUser(null);
-        const target = redirectTo || "/login";
-        router.replace(target);
+        router.replace(redirectTo || "/login");
       }
     },
     [router],
@@ -115,7 +114,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
 export const useAuth = () => {
   const ctx = useContext(AuthContext);
-  if (!ctx) throw new Error("useAuth must be used within AuthProvider");
+  if (!ctx) {
+    throw new Error("useAuth must be used within AuthProvider");
+  }
   return ctx;
 };
 
@@ -131,10 +132,12 @@ export function AuthGuard({
 
   useEffect(() => {
     if (loading) return;
+
     if (!isAuthenticated) {
       router.replace("/login");
       return;
     }
+
     if (allowedRoles && role && !allowedRoles.includes(role)) {
       router.replace(getDashboardPath(role));
     }
@@ -148,11 +151,7 @@ export function AuthGuard({
     );
   }
 
-  if (!isAuthenticated) {
-    return null;
-  }
+  if (!isAuthenticated) return null;
 
   return <>{children}</>;
 }
-
-export { getDashboardPath };
