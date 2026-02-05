@@ -49,7 +49,9 @@ export default function DashboardLayout({
         <TopNavbar appName={appName} profileHref={profileHref} />
 
         {/* Page Content */}
-        <main className="p-8 min-h-[calc(100vh-64px)]">{children}</main>
+        <main className="px-4 py-6 sm:px-6 lg:px-8 min-h-[calc(100vh-64px)]">
+          {children}
+        </main>
       </div>
     </div>
   );

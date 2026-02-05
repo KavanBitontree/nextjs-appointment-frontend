@@ -14,17 +14,17 @@ export default function PatientDashboard() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}
       >
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold text-slate-900 mb-2">
+        <div className="mb-6 sm:mb-8">
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-slate-900 mb-1 sm:mb-2">
             Dashboard
           </h1>
-          <p className="text-slate-700">
+          <p className="text-sm sm:text-base text-slate-700">
             Welcome back! Here's an overview of your tasks and activities
           </p>
         </div>
 
         {/* Stats Grid */}
-        <div className="grid md:grid-cols-3 gap-6 mb-8">
+        <div className="grid gap-4 sm:gap-6 md:grid-cols-3 mb-6 sm:mb-8">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}

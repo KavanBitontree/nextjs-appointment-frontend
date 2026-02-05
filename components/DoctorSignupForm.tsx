@@ -368,11 +368,11 @@ export default function DoctorSignupForm() {
   };
 
   return (
-    <div className="min-h-screen bg-white flex items-center justify-center p-4 relative overflow-hidden">
+    <div className="min-h-screen bg-white flex items-stretch md:items-center justify-center px-4 py-8 sm:py-10 relative overflow-hidden">
       <motion.div
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-white p-8 rounded-lg shadow-lg w-full max-w-md border border-slate-200"
+            className="bg-white p-6 sm:p-8 rounded-3xl shadow-lg w-full max-w-md border border-slate-200"
       >
         <Link
           href="/signup"

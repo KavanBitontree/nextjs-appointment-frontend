@@ -193,7 +193,7 @@ export default function LoginForm() {
   };
 
   return (
-    <div className="min-h-screen bg-white flex items-center justify-center p-4 relative overflow-hidden">
+    <div className="min-h-screen bg-white flex items-stretch md:items-center justify-center px-4 py-8 sm:py-10 relative overflow-hidden">
       <AnimatePresence mode="wait">
         {!sessionConflict ? (
           <motion.div
@@ -202,7 +202,7 @@ export default function LoginForm() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
             transition={{ duration: 0.6 }}
-            className="relative max-w-md w-full z-10"
+            className="relative w-full max-w-md z-10"
           >
             <div className="bg-white rounded-3xl shadow-lg p-8 md:p-10 border border-slate-200">
               <div className="flex items-center justify-center mb-8">
@@ -342,7 +342,7 @@ export default function LoginForm() {
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.9 }}
             transition={{ duration: 0.4 }}
-            className="relative max-w-md w-full z-10"
+            className="relative w-full max-w-md z-10"
           >
             <div className="bg-white rounded-3xl shadow-lg p-8 md:p-10 border border-slate-200">
               <div className="flex items-center justify-center mb-6">

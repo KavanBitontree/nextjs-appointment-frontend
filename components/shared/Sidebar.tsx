@@ -3,8 +3,8 @@
 import React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { motion } from "framer-motion";
-import { Menu } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Menu, X } from "lucide-react";
 
 export interface NavItem {
   label: string;
@@ -30,62 +30,82 @@ export default function Sidebar({
   const isActive = (href: string) => pathname === href;
 
   return (
-    <motion.div
-      initial={false}
-      animate={{ width: isOpen ? 200 : 70 }}
-      transition={{ duration: 0.3, ease: "easeInOut" }}
-      className="bg-slate-900 text-white flex flex-col fixed left-0 top-0 h-full z-40 border-r border-slate-800"
-    >
-      {/* Logo */}
-      <div className="p-4 border-b border-slate-800 flex items-center justify-between">
-        <motion.div
-          animate={{ width: isOpen ? "auto" : 0 }}
-          transition={{ duration: 0.3 }}
-          className="overflow-hidden whitespace-nowrap"
-        >
-          <div className="text-sm font-bold">{appName}</div>
-        </motion.div>
-        <button
-          onClick={onToggle}
-          className="p-2 hover:bg-slate-800 rounded-lg transition-colors"
-          aria-label="Toggle sidebar"
-        >
-          <Menu className="w-5 h-5" />
-        </button>
-      </div>
-
-      {/* Navigation Items */}
-      <nav className="flex-1 py-4 px-2 space-y-2">
-        {navItems?.map((item) => (
-          <Link key={item.href} href={item.href}>
-            <div
-              className={`flex items-center ${
-                isOpen ? "justify-start gap-3 px-3" : "justify-center px-0"
-              } py-3 rounded-lg transition-colors ${
-                isActive(item.href)
-                  ? "bg-white text-slate-900 shadow-md"
-                  : "text-white hover:bg-slate-800"
-              }`}
-            >
-              <div className="flex-shrink-0 w-5 h-5 flex items-center justify-center">
-                {item.icon}
-              </div>
-              <span
-                className={`text-sm font-medium whitespace-nowrap transition-all duration-200 ${
-                  isOpen
-                    ? "opacity-100 max-w-full overflow-visible"
-                    : "opacity-0 max-w-0 overflow-hidden w-0"
-                }`}
-                style={{
-                  display: isOpen ? "inline-block" : "none",
-                }}
-              >
-                {item.label}
-              </span>
+    <>
+      {/* Sidebar */}
+      <motion.div
+        initial={false}
+        animate={{ width: isOpen ? 240 : 72 }}
+        transition={{ duration: 0.3, ease: "easeInOut" }}
+        className="bg-slate-900 text-white flex flex-col fixed left-0 top-0 h-screen z-40 border-r border-slate-800 overflow-hidden"
+      >
+        {/* Logo Section - Always has fixed height for icon area */}
+        <div className="p-3 sm:p-4 border-b border-slate-800 flex items-center justify-between flex-shrink-0 h-16">
+          <motion.div
+            animate={{ opacity: isOpen ? 1 : 0, width: isOpen ? "auto" : 0 }}
+            transition={{ duration: 0.3 }}
+            className="overflow-hidden whitespace-nowrap"
+          >
+            <div className="text-xs sm:text-sm font-bold leading-tight">
+              {appName}
             </div>
-          </Link>
-        ))}
-      </nav>
-    </motion.div>
+          </motion.div>
+          <button
+            onClick={onToggle}
+            className="p-2 hover:bg-slate-800 rounded-lg transition-colors flex-shrink-0"
+            aria-label="Toggle sidebar"
+          >
+            {isOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+          </button>
+        </div>
+
+        {/* Navigation Items - Icons always visible */}
+        <nav className="flex-1 py-3 sm:py-4 px-2 sm:px-3 space-y-2 overflow-y-auto">
+          {navItems?.map((item) => (
+            <Link key={item.href} href={item.href}>
+              <motion.div
+                whileHover={{ backgroundColor: "rgba(226, 232, 240, 0.1)" }}
+                className={`flex items-center gap-3 py-2.5 sm:py-3 px-2 sm:px-3 rounded-lg transition-all duration-200 flex-shrink-0 ${
+                  isActive(item.href)
+                    ? "bg-white text-slate-900 shadow-md"
+                    : "text-white hover:bg-slate-800"
+                }`}
+              >
+                {/* Icon - Always visible and properly sized */}
+                <div className="flex-shrink-0 w-6 h-6 sm:w-6 sm:h-6 flex items-center justify-center">
+                  {item.icon}
+                </div>
+                {/* Text - Hidden when collapsed, smooth animation */}
+                <AnimatePresence mode="wait">
+                  {isOpen && (
+                    <motion.span
+                      initial={{ opacity: 0, width: 0 }}
+                      animate={{ opacity: 1, width: "auto" }}
+                      exit={{ opacity: 0, width: 0 }}
+                      transition={{ duration: 0.2 }}
+                      className="text-xs sm:text-sm font-medium whitespace-nowrap overflow-hidden"
+                    >
+                      {item.label}
+                    </motion.span>
+                  )}
+                </AnimatePresence>
+              </motion.div>
+            </Link>
+          ))}
+        </nav>
+      </motion.div>
+
+      {/* Overlay for mobile when sidebar is open */}
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={onToggle}
+            className="fixed inset-0 bg-black/50 z-30 md:hidden"
+          />
+        )}
+      </AnimatePresence>
+    </>
   );
 }

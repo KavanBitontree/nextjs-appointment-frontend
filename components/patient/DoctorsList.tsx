@@ -139,12 +139,12 @@ export default function DoctorsList({
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.1 }}
-              className="bg-white rounded-xl p-6 border border-slate-200 hover:shadow-lg hover:border-slate-300 transition-all"
+              className="bg-white rounded-xl p-5 sm:p-6 border border-slate-200 hover:shadow-lg hover:border-slate-300 transition-all"
             >
-              <div className="flex items-start justify-between gap-6">
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                 {/* Doctor Info */}
                 <div className="flex-1">
-                  <h3 className="text-2xl font-bold text-slate-900 mb-2">
+                  <h3 className="text-xl sm:text-2xl font-bold text-slate-900 mb-2">
                     {doctor.name}
                   </h3>
 
@@ -155,7 +155,7 @@ export default function DoctorsList({
                     </span>
                   </div>
 
-                  <div className="grid md:grid-cols-3 gap-4">
+                  <div className="grid gap-4 md:grid-cols-3">
                     {/* Address */}
                     <div className="flex items-start gap-3">
                       <MapPin className="w-5 h-5 text-slate-400 flex-shrink-0 mt-1" />
@@ -200,8 +200,8 @@ export default function DoctorsList({
                   whileHover={!isNavigating ? { scale: 1.05 } : {}}
                   whileTap={!isNavigating ? { scale: 0.95 } : {}}
                   className={`
-                    px-6 py-3 rounded-xl transition-colors font-medium text-sm 
-                    flex-shrink-0 h-fit flex items-center gap-2 min-w-[140px] justify-center
+                    w-full sm:w-auto px-5 py-2.5 sm:px-6 sm:py-3 rounded-xl transition-colors font-medium text-sm 
+                    flex-shrink-0 h-fit flex items-center gap-2 justify-center
                     ${
                       isNavigating
                         ? "bg-slate-700 cursor-wait"

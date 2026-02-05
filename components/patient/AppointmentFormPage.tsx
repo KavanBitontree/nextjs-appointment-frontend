@@ -38,22 +38,24 @@ export default function AppointmentFormPage({
 }: AppointmentFormPageProps) {
   return (
     <PatientLayout>
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 py-12 px-4">
-        <div className="max-w-5xl mx-auto">
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 py-8 px-3 sm:py-10 sm:px-4">
+        <div className="max-w-5xl mx-auto w-full">
           {/* Header */}
-          <div className="bg-white rounded-2xl shadow-lg border border-slate-200 p-8 mb-8">
-            <div className="flex items-start justify-between">
+          <div className="bg-white rounded-2xl shadow-lg border border-slate-200 p-5 sm:p-8 mb-6 sm:mb-8">
+            <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
               <div>
-                <h1 className="text-3xl font-bold text-slate-900 mb-2">
+                <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 mb-1 sm:mb-2">
                   Book Appointment
                 </h1>
-                <p className="text-slate-600">
+                <p className="text-sm sm:text-base text-slate-600">
                   Schedule your consultation with Dr. {doctorData.name}
                 </p>
               </div>
-              <div className="text-right">
-                <p className="text-sm text-slate-500 mb-1">Consultation Fee</p>
-                <p className="text-2xl font-bold text-green-600">
+              <div className="text-left md:text-right">
+                <p className="text-xs sm:text-sm text-slate-500 mb-1">
+                  Consultation Fee
+                </p>
+                <p className="text-xl sm:text-2xl font-bold text-green-600">
                   ₹{doctorData.opd_fees}
                 </p>
               </div>

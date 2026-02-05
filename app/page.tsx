@@ -12,39 +12,39 @@ import PublicOnly from "@/components/PublicOnly";
 export default function Home() {
   return (
     <PublicOnly>
-    <main className="min-h-screen bg-white px-6 py-16">
-      <div className="mx-auto flex max-w-6xl flex-col gap-16">
-        <header className="rounded-3xl bg-white p-10 shadow-lg border border-slate-200">
-          <div className="grid md:grid-cols-2 gap-8 items-center">
+    <main className="min-h-screen bg-white px-4 py-10 sm:px-6 sm:py-16">
+      <div className="mx-auto flex w-full max-w-6xl flex-col gap-10 sm:gap-16">
+        <header className="rounded-3xl bg-white p-6 sm:p-8 lg:p-10 shadow-lg border border-slate-200">
+          <div className="grid gap-8 items-center md:grid-cols-2">
             <div>
               <p className="mb-4 inline-flex items-center rounded-full bg-blue-100 px-3 py-1 text-xs font-semibold text-blue-700">
                 Appointment Booking Platform
               </p>
-              <h1 className="text-4xl font-bold leading-tight text-slate-900 md:text-5xl">
+              <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold leading-tight text-slate-900">
                 Book, manage, and track appointments with ease.
               </h1>
-              <p className="mt-4 text-lg text-slate-700">
+              <p className="mt-4 text-base sm:text-lg text-slate-700">
                 Patients and doctors get a secure, single-session experience
                 with automatic token refresh, device-aware login, and real-time
                 form validation.
               </p>
-              <div className="mt-8 flex flex-wrap gap-4">
+              <div className="mt-6 sm:mt-8 flex flex-wrap gap-3 sm:gap-4">
                 <Link
                   href="/login"
-                  className="rounded-xl bg-slate-900 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-800"
+                  className="rounded-xl bg-slate-900 px-4 py-2.5 sm:px-5 sm:py-3 text-sm font-semibold text-white transition hover:bg-slate-800"
                 >
                   Sign in
                 </Link>
                 <Link
                   href="/signup"
-                  className="rounded-xl bg-slate-100 border border-slate-300 px-5 py-3 text-sm font-semibold text-slate-900 transition hover:bg-slate-200"
+                  className="rounded-xl bg-slate-100 border border-slate-300 px-4 py-2.5 sm:px-5 sm:py-3 text-sm font-semibold text-slate-900 transition hover:bg-slate-200"
                 >
                   Create an account
                 </Link>
               </div>
             </div>
 
-            <div className="relative h-80 md:h-96 rounded-2xl overflow-hidden shadow-xl border-4 border-blue-100">
+            <div className="relative h-64 sm:h-80 md:h-96 rounded-2xl overflow-hidden shadow-xl border-4 border-blue-100 mt-6 md:mt-0">
               <Image
                 src="/images/doctor-consultation-patient-medical-appointment-flat-vector-illustration-consulting-clinic-hospital-430519054.jpg"
                 alt="Doctor consulting with patient in medical appointment"
@@ -56,7 +56,7 @@ export default function Home() {
           </div>
         </header>
 
-        <section className="grid gap-6 md:grid-cols-2">
+        <section className="grid gap-4 sm:gap-6 md:grid-cols-2">
           {[
             {
               title: "Patient access",
@@ -78,13 +78,13 @@ export default function Home() {
             <Link
               key={card.title}
               href={card.href}
-              className="group flex flex-col gap-3 rounded-2xl border border-slate-200 bg-white p-6 shadow-lg transition hover:-translate-y-1 hover:border-blue-400 hover:shadow-xl"
+              className="group flex flex-col gap-2 sm:gap-3 rounded-2xl border border-slate-200 bg-white p-5 sm:p-6 shadow-lg transition hover:-translate-y-1 hover:border-blue-400 hover:shadow-xl"
             >
               <div className="flex items-center gap-3">
-                <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-100">
+                <span className="flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-xl bg-blue-100">
                   {card.icon}
                 </span>
-                <h3 className="text-lg font-semibold text-slate-900">
+                <h3 className="text-base sm:text-lg font-semibold text-slate-900">
                   {card.title}
                 </h3>
               </div>
@@ -98,7 +98,7 @@ export default function Home() {
           ))}
         </section>
 
-        <section className="grid gap-6 rounded-3xl bg-white p-8 shadow-lg border border-slate-200 md:grid-cols-3">
+        <section className="grid gap-5 sm:gap-6 rounded-3xl bg-white p-6 sm:p-8 shadow-lg border border-slate-200 md:grid-cols-3">
           <div className="flex items-start gap-3">
             <CalendarDays className="mt-1 h-6 w-6 text-blue-600" />
             <div>

@@ -9,7 +9,14 @@ import {
   toISODate,
 } from "./date";
 import type { DoctorSlotDTO } from "./types";
-import { Loader } from "lucide-react";
+import {
+  Loader,
+  CheckCircle,
+  Lock,
+  Calendar,
+  ChevronLeft,
+  ChevronRight,
+} from "lucide-react";
 import { useToast } from "@/components/Toast";
 import {
   blockSlot,
@@ -277,50 +284,73 @@ export default function DoctorCalendarPage() {
   }, [month]);
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-      <div className="lg:col-span-2 rounded-2xl border border-slate-200 bg-white p-6">
-        <div className="flex items-center justify-between gap-3 mb-4">
-          <div>
-            <h1 className="text-2xl font-bold text-slate-900">Calendar</h1>
-            <p className="text-sm text-slate-600">
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 sm:gap-4 md:gap-6 p-2 sm:p-4 md:p-6 min-h-screen bg-slate-50">
+      <div className="lg:col-span-2 rounded-xl sm:rounded-2xl border border-slate-200 bg-white p-3 sm:p-4 md:p-6 flex flex-col">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-3 mb-4 flex-shrink-0">
+          <div className="min-w-0">
+            <h1 className="text-lg sm:text-xl md:text-2xl font-bold text-slate-900 truncate">
+              Calendar
+            </h1>
+            <p className="text-xs sm:text-sm text-slate-600 mt-0.5 sm:mt-1 line-clamp-2">
               Manage slots, full-day off, recurring Sundays, and leave ranges.
             </p>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1 sm:gap-2 w-full sm:w-auto justify-between sm:justify-end flex-shrink-0">
             <button
-              className="px-3 py-2 rounded-lg border border-slate-200 hover:bg-slate-50 text-sm"
+              className="p-1.5 sm:p-2 rounded-lg border border-slate-200 hover:bg-slate-50 transition-colors flex items-center justify-center flex-shrink-0"
               onClick={() => setMonth(addMonths(month, -1))}
+              title="Previous month"
             >
-              Prev
+              <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5 text-slate-700" />
             </button>
-            <div className="text-sm font-semibold text-slate-900 w-[140px] text-center">
+            <div className="text-xs sm:text-sm font-semibold text-slate-900 text-center min-w-fit px-2 flex-shrink-0">
               {monthLabel}
             </div>
             <button
-              className="px-3 py-2 rounded-lg border border-slate-200 hover:bg-slate-50 text-sm"
+              className="p-1.5 sm:p-2 rounded-lg border border-slate-200 hover:bg-slate-50 transition-colors flex items-center justify-center flex-shrink-0"
               onClick={() => setMonth(addMonths(month, 1))}
+              title="Next month"
             >
-              Next
+              <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5 text-slate-700" />
             </button>
           </div>
         </div>
 
         {error && (
-          <div className="mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
+          <div className="mb-3 sm:mb-4 rounded-lg sm:rounded-xl border border-red-200 bg-red-50 px-3 py-2 sm:px-4 sm:py-3 text-xs sm:text-sm text-red-800">
             {error}
           </div>
         )}
 
-        <div className="grid grid-cols-7 gap-2 mb-2 text-xs font-semibold text-slate-500">
+        <div className="mb-3 sm:mb-4 flex flex-wrap gap-2 sm:gap-3 md:gap-4 p-2 sm:p-3 md:p-4 bg-slate-50 rounded-lg border border-slate-200">
+          <div className="flex items-center gap-1.5 sm:gap-2">
+            <CheckCircle className="w-4 h-4 text-green-600 flex-shrink-0" />
+            <span className="text-xs sm:text-sm text-slate-700">Free</span>
+          </div>
+          <div className="flex items-center gap-1.5 sm:gap-2">
+            <Lock className="w-4 h-4 text-gray-500 flex-shrink-0" />
+            <span className="text-xs sm:text-sm text-slate-700">Blocked</span>
+          </div>
+          <div className="flex items-center gap-1.5 sm:gap-2">
+            <Calendar className="w-4 h-4 text-red-600 flex-shrink-0" />
+            <span className="text-xs sm:text-sm text-slate-700">Booked</span>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-4 sm:grid-cols-7 gap-1 sm:gap-2 mb-2 text-[10px] sm:text-xs font-semibold text-slate-500">
           {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((d) => (
-            <div key={d} className="px-2">
-              {d}
+            <div
+              key={d}
+              className="px-1 text-center h-6 sm:h-8 flex items-center justify-center flex-shrink-0"
+            >
+              <span className="hidden sm:inline truncate">{d}</span>
+              <span className="sm:hidden truncate">{d.slice(0, 1)}</span>
             </div>
           ))}
         </div>
 
-        <div className="grid grid-cols-7 gap-2">
+        <div className="grid grid-cols-4 sm:grid-cols-7 gap-1 sm:gap-2">
           {days.map((d) => {
             const iso = toISODate(d);
             const inMonth = d.getMonth() === month.getMonth();
@@ -334,7 +364,7 @@ export default function DoctorCalendarPage() {
                 key={iso}
                 onClick={() => setSelectedDay(d)}
                 className={[
-                  "h-24 rounded-xl border text-left p-2 transition-colors",
+                  "min-h-20 sm:h-24 rounded-lg sm:rounded-xl border text-left p-1.5 sm:p-2 transition-colors text-xs sm:text-sm flex flex-col",
                   selected
                     ? "border-slate-900 bg-slate-900 text-white"
                     : "border-slate-200 hover:bg-slate-50 bg-white",
@@ -342,57 +372,58 @@ export default function DoctorCalendarPage() {
                   !editable ? "opacity-40 cursor-not-allowed" : "",
                 ].join(" ")}
               >
-                <div className="flex items-start justify-between">
-                  <div className="text-sm font-semibold">
+                <div className="flex items-start justify-between gap-1 flex-shrink-0 mb-1">
+                  <div className="text-xs sm:text-sm font-semibold flex-shrink-0">
                     {pad2(d.getDate())}
                   </div>
                   {d.getDay() === 0 && (
                     <div
                       className={[
-                        "text-[10px] px-2 py-0.5 rounded-full",
+                        "text-[8px] sm:text-[10px] px-1.5 py-0.5 rounded-full flex-shrink-0 whitespace-nowrap",
                         selected
                           ? "bg-white/15 text-white"
                           : "bg-slate-100 text-slate-700",
                       ].join(" ")}
                     >
-                      Sunday
+                      Sun
                     </div>
                   )}
                 </div>
 
-                <div className="mt-2 space-y-1 text-[11px]">
+                <div className="mt-auto space-y-1 text-[9px] sm:text-[11px]">
                   {!hasSlots ? (
                     <div
-                      className={selected ? "text-white/80" : "text-slate-500"}
+                      className={`${selected ? "text-white/80" : "text-slate-500"} truncate`}
                     >
                       No slots
                     </div>
                   ) : (
-                    <>
-                      <div
-                        className={
-                          selected ? "text-white/90" : "text-slate-700"
-                        }
-                      >
-                        Free: <span className="font-semibold">{sum.free}</span>
-                      </div>
-                      <div
-                        className={
-                          selected ? "text-white/90" : "text-slate-700"
-                        }
-                      >
-                        Blocked:{" "}
-                        <span className="font-semibold">{sum.blocked}</span>
-                      </div>
-                      <div
-                        className={
-                          selected ? "text-white/90" : "text-slate-700"
-                        }
-                      >
-                        Booked:{" "}
-                        <span className="font-semibold">{sum.booked}</span>
-                      </div>
-                    </>
+                    <div className="flex items-center gap-1 flex-wrap gap-y-1">
+                      {sum.free > 0 && (
+                        <div className="flex items-center gap-0.5 flex-shrink-0">
+                          <CheckCircle
+                            className={`w-3 h-3 ${selected ? "text-white" : "text-green-600"} flex-shrink-0`}
+                          />
+                          <span className="font-semibold">{sum.free}</span>
+                        </div>
+                      )}
+                      {sum.blocked > 0 && (
+                        <div className="flex items-center gap-0.5 flex-shrink-0">
+                          <Lock
+                            className={`w-3 h-3 ${selected ? "text-white/70" : "text-gray-500"} flex-shrink-0`}
+                          />
+                          <span className="font-semibold">{sum.blocked}</span>
+                        </div>
+                      )}
+                      {sum.booked > 0 && (
+                        <div className="flex items-center gap-0.5 flex-shrink-0">
+                          <Calendar
+                            className={`w-3 h-3 ${selected ? "text-white" : "text-red-600"} flex-shrink-0`}
+                          />
+                          <span className="font-semibold">{sum.booked}</span>
+                        </div>
+                      )}
+                    </div>
                   )}
                 </div>
               </button>
@@ -401,18 +432,20 @@ export default function DoctorCalendarPage() {
         </div>
 
         {loading && (
-          <div className="mt-4 text-sm text-slate-600">Loading slots…</div>
+          <div className="mt-4 text-xs sm:text-sm text-slate-600">
+            Loading slots…
+          </div>
         )}
       </div>
 
-      <div className="rounded-2xl border border-slate-200 bg-white p-6 space-y-6">
+      <div className="rounded-xl sm:rounded-2xl border border-slate-200 bg-white p-3 sm:p-4 md:p-6 space-y-4 sm:space-y-6 flex flex-col h-fit lg:h-auto">
         <div>
-          <div className="flex items-center justify-between gap-3">
+          <div className="flex flex-col gap-3">
             <div>
-              <h2 className="text-lg font-bold text-slate-900">
+              <h2 className="text-base sm:text-lg font-bold text-slate-900 truncate">
                 {selectedISO}
               </h2>
-              <p className="text-sm text-slate-600">
+              <p className="text-xs sm:text-sm text-slate-600 mt-1 line-clamp-2">
                 Toggle FREE ↔ BLOCKED slots, or mark whole day off.
               </p>
               {!selectedEditable && (
@@ -424,12 +457,12 @@ export default function DoctorCalendarPage() {
             <button
               onClick={onDateOff}
               disabled={isBusy("dateOff") || !selectedEditable}
-              className="px-3 py-2 rounded-lg bg-slate-900 text-white text-sm hover:bg-slate-800 disabled:opacity-60 disabled:cursor-not-allowed"
+              className="px-3 py-2 rounded-lg bg-slate-900 text-white text-xs sm:text-sm hover:bg-slate-800 disabled:opacity-60 disabled:cursor-not-allowed transition-colors w-full sm:w-auto"
             >
               {isBusy("dateOff") ? (
-                <span className="inline-flex items-center gap-2">
-                  <Loader className="w-4 h-4 animate-spin" />
-                  Updating...
+                <span className="inline-flex items-center gap-2 justify-center">
+                  <Loader className="w-3 h-3 sm:w-4 sm:h-4 animate-spin" />
+                  <span>Updating...</span>
                 </span>
               ) : (
                 "Mark date off"
@@ -437,16 +470,16 @@ export default function DoctorCalendarPage() {
             </button>
           </div>
 
-          <div className="mt-4 divide-y divide-slate-200 rounded-xl border border-slate-200">
+          <div className="mt-4 divide-y divide-slate-200 rounded-lg sm:rounded-xl border border-slate-200 overflow-hidden">
             {selectedSlots.length === 0 ? (
-              <div className="p-4 space-y-3">
-                <div className="text-sm text-slate-600">
+              <div className="p-3 sm:p-4 space-y-3">
+                <div className="text-xs sm:text-sm text-slate-600">
                   No slots found for this date. Create slots to make the day
                   bookable.
                 </div>
 
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
+                <div className="grid grid-cols-2 gap-2 sm:gap-3">
+                  <div className="min-w-0">
                     <label className="block text-xs text-slate-600 mb-1">
                       Start time
                     </label>
@@ -454,10 +487,10 @@ export default function DoctorCalendarPage() {
                       type="time"
                       value={createStartTime}
                       onChange={(e) => setCreateStartTime(e.target.value)}
-                      className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
+                      className="w-full rounded-lg border border-slate-200 px-2 sm:px-3 py-2 text-xs sm:text-sm"
                     />
                   </div>
-                  <div>
+                  <div className="min-w-0">
                     <label className="block text-xs text-slate-600 mb-1">
                       End time
                     </label>
@@ -465,7 +498,7 @@ export default function DoctorCalendarPage() {
                       type="time"
                       value={createEndTime}
                       onChange={(e) => setCreateEndTime(e.target.value)}
-                      className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
+                      className="w-full rounded-lg border border-slate-200 px-2 sm:px-3 py-2 text-xs sm:text-sm"
                     />
                   </div>
                 </div>
@@ -473,12 +506,12 @@ export default function DoctorCalendarPage() {
                 <button
                   onClick={onCreateSlots}
                   disabled={isBusy("createSlots") || !selectedEditable}
-                  className="w-full px-3 py-2 rounded-lg bg-slate-900 text-white text-sm hover:bg-slate-800 disabled:opacity-60 disabled:cursor-not-allowed"
+                  className="w-full px-3 py-2 rounded-lg bg-slate-900 text-white text-xs sm:text-sm hover:bg-slate-800 disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
                 >
                   {isBusy("createSlots") ? (
-                    <span className="inline-flex items-center gap-2">
-                      <Loader className="w-4 h-4 animate-spin" />
-                      Creating...
+                    <span className="inline-flex items-center gap-2 justify-center">
+                      <Loader className="w-3 h-3 sm:w-4 sm:h-4 animate-spin" />
+                      <span>Creating...</span>
                     </span>
                   ) : (
                     "Create slots"
@@ -492,13 +525,13 @@ export default function DoctorCalendarPage() {
                 return (
                   <div
                     key={s.id}
-                    className="flex items-center justify-between p-3"
+                    className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-2 sm:p-3 gap-2 sm:gap-0"
                   >
                     <div>
-                      <div className="text-sm font-semibold text-slate-900">
+                      <div className="text-xs sm:text-sm font-semibold text-slate-900">
                         {humanTime(s.start_time)} - {humanTime(s.end_time)}
                       </div>
-                      <div className="text-xs text-slate-600">
+                      <div className="text-[10px] sm:text-xs text-slate-600">
                         Status: {s.status}
                       </div>
                     </div>
@@ -506,16 +539,16 @@ export default function DoctorCalendarPage() {
                       disabled={!canToggle || slotBusy || !selectedEditable}
                       onClick={() => onToggleSlot(s)}
                       className={[
-                        "px-3 py-2 rounded-lg text-sm border",
+                        "px-2 sm:px-3 py-2 rounded-lg text-xs sm:text-sm border whitespace-nowrap w-full sm:w-auto",
                         canToggle && selectedEditable
                           ? "border-slate-200 hover:bg-slate-50"
                           : "border-slate-100 text-slate-400 cursor-not-allowed",
                       ].join(" ")}
                     >
                       {slotBusy ? (
-                        <span className="inline-flex items-center gap-2">
-                          <Loader className="w-4 h-4 animate-spin" />
-                          Updating...
+                        <span className="inline-flex items-center gap-2 justify-center">
+                          <Loader className="w-3 h-3 sm:w-4 sm:h-4 animate-spin" />
+                          <span>Updating...</span>
                         </span>
                       ) : s.status === "FREE" ? (
                         "Block"
@@ -532,79 +565,91 @@ export default function DoctorCalendarPage() {
           </div>
         </div>
 
-        <div className="rounded-xl border border-slate-200 p-4">
-          <h3 className="text-sm font-bold text-slate-900 mb-3">
+        <div className="rounded-lg sm:rounded-xl border border-slate-200 p-3 sm:p-4">
+          <h3 className="text-xs sm:text-sm font-bold text-slate-900 mb-3">
             Recurring Sundays off
           </h3>
-          <div className="flex items-center gap-3">
-            <input
-              type="number"
-              min={1}
-              max={52}
-              value={sundaysWeeks}
-              onChange={(e) => setSundaysWeeks(Number(e.target.value))}
-              className="w-24 rounded-lg border border-slate-200 px-3 py-2 text-sm"
-            />
-            <div className="text-sm text-slate-600">weeks</div>
-            <button
-              onClick={onSundaysOff}
-              disabled={isBusy("sundaysOff")}
-              className="ml-auto px-3 py-2 rounded-lg bg-slate-900 text-white text-sm hover:bg-slate-800 disabled:opacity-60 disabled:cursor-not-allowed"
-            >
-              {isBusy("sundaysOff") ? (
-                <span className="inline-flex items-center gap-2">
-                  <Loader className="w-4 h-4 animate-spin" />
-                  Applying...
-                </span>
-              ) : (
-                "Apply"
-              )}
-            </button>
+          <div className="flex flex-col gap-3">
+            <div className="flex items-end gap-2">
+              <div className="flex-1">
+                <label className="block text-xs text-slate-600 mb-1">
+                  Weeks
+                </label>
+                <input
+                  type="number"
+                  min={1}
+                  max={52}
+                  value={sundaysWeeks}
+                  onChange={(e) => setSundaysWeeks(Number(e.target.value))}
+                  className="w-full rounded-lg border border-slate-200 px-2 sm:px-3 py-2 text-xs sm:text-sm"
+                />
+              </div>
+              <button
+                onClick={onSundaysOff}
+                disabled={isBusy("sundaysOff")}
+                className="px-3 sm:px-4 py-2 rounded-lg bg-slate-900 text-white text-xs sm:text-sm hover:bg-slate-800 disabled:opacity-60 disabled:cursor-not-allowed whitespace-nowrap"
+              >
+                {isBusy("sundaysOff") ? (
+                  <span className="inline-flex items-center gap-2">
+                    <Loader className="w-3 h-3 sm:w-4 sm:h-4 animate-spin" />
+                    <span>Applying...</span>
+                  </span>
+                ) : (
+                  "Apply"
+                )}
+              </button>
+            </div>
           </div>
-          <p className="mt-2 text-xs text-slate-500">
+          <p className="mt-2 text-[10px] sm:text-xs text-slate-500">
             This will mark upcoming Sundays as off for the next N weeks.
           </p>
         </div>
 
-        <div className="rounded-xl border border-slate-200 p-4">
-          <h3 className="text-sm font-bold text-slate-900 mb-3">Leave range</h3>
-          <div className="grid grid-cols-2 gap-3">
+        <div className="rounded-lg sm:rounded-xl border border-slate-200 p-3 sm:p-4">
+          <h3 className="text-xs sm:text-sm font-bold text-slate-900 mb-3">
+            Leave range
+          </h3>
+          <div className="flex flex-col gap-2 sm:gap-3">
             <div>
-              <label className="block text-xs text-slate-600 mb-1">Start</label>
+              <label className="block text-xs text-slate-600 mb-1">
+                Start date
+              </label>
               <input
                 type="date"
                 value={leaveStart}
                 onChange={(e) => setLeaveStart(e.target.value)}
                 min={toISODate(minEditableDate)}
-                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
+                className="w-full rounded-lg border border-slate-200 px-2 sm:px-3 py-2 text-xs sm:text-sm"
               />
             </div>
             <div>
-              <label className="block text-xs text-slate-600 mb-1">End</label>
+              <label className="block text-xs text-slate-600 mb-1">
+                End date
+              </label>
               <input
                 type="date"
                 value={leaveEnd}
                 onChange={(e) => setLeaveEnd(e.target.value)}
                 min={toISODate(minEditableDate)}
-                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
+                className="w-full rounded-lg border border-slate-200 px-2 sm:px-3 py-2 text-xs sm:text-sm"
               />
             </div>
           </div>
           <button
             onClick={onLeaveRange}
             disabled={isBusy("leaveRange")}
-            className="mt-3 w-full px-3 py-2 rounded-lg bg-slate-900 text-white text-sm hover:bg-slate-800 disabled:opacity-60 disabled:cursor-not-allowed"
+            className="mt-3 w-full px-2 sm:px-3 py-2 rounded-lg bg-slate-900 text-white text-xs sm:text-sm hover:bg-slate-800 disabled:opacity-60 disabled:cursor-not-allowed"
           >
             {isBusy("leaveRange") ? (
               <span className="inline-flex items-center justify-center gap-2">
-                <Loader className="w-4 h-4 animate-spin" />
-                Applying...
+                <Loader className="w-3 h-3 sm:w-4 sm:h-4 animate-spin" />
+                <span>Applying...</span>
               </span>
             ) : (
               "Apply leave"
             )}
           </button>
-          <p className="mt-2 text-xs text-slate-500">
+          <p className="mt-2 text-[10px] sm:text-xs text-slate-500">
             Continuous sequence of days will be marked off.
           </p>
         </div>

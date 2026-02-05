@@ -1,11 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { AlertCircle, ArrowLeft, Loader2 } from "lucide-react";
+import { AlertCircle, ArrowLeft } from "lucide-react";
 
 import { api } from "@/lib/axios";
 import { AuthGuard } from "@/context/AuthContext";
 import AppointmentFormPage from "./AppointmentFormPage";
+import AppointmentFormLoading from "@/app/patient/[doctorId]/appointment-form/loading";
 
 interface Doctor {
   id: number;
@@ -97,18 +98,7 @@ export default function AppointmentFormRoute({
 
   return (
     <AuthGuard allowedRoles={["patient"]}>
-      {loading && !error && (
-        <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 py-12 px-4">
-          <div className="max-w-5xl mx-auto">
-            <div className="bg-white rounded-2xl shadow-lg border border-slate-200 p-8 flex flex-col items-center justify-center gap-4">
-              <Loader2 className="w-8 h-8 text-slate-900 animate-spin" />
-              <p className="text-slate-700 text-sm">
-                Loading appointment details...
-              </p>
-            </div>
-          </div>
-        </div>
-      )}
+      {loading && !error && <AppointmentFormLoading />}
 
       {!loading && error && (
         <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 py-12 px-4">
@@ -149,5 +139,3 @@ export default function AppointmentFormRoute({
     </AuthGuard>
   );
 }
-
-

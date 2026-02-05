@@ -585,15 +585,17 @@ export default function ShowDoctorsClient({
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.6 }}
     >
-      <div className="mb-8">
-        <h1 className="text-4xl font-bold text-slate-900 mb-2">Find Doctors</h1>
-        <p className="text-slate-700">
+      <div className="mb-6 sm:mb-8">
+        <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-slate-900 mb-1 sm:mb-2">
+          Find Doctors
+        </h1>
+        <p className="text-sm sm:text-base text-slate-700">
           Search and book appointments with qualified doctors
         </p>
       </div>
 
       {/* View Toggle */}
-      <div className="flex gap-2 mb-6">
+      <div className="flex flex-wrap gap-2 mb-4 sm:mb-6">
         <button
           onClick={() => setViewMode("list")}
           className={`flex items-center gap-2 px-6 py-3 rounded-lg font-medium transition-colors ${
@@ -629,7 +631,7 @@ export default function ShowDoctorsClient({
               }
             }}
             disabled={locationLoading}
-            className="flex items-center gap-2 px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium ml-auto disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex items-center gap-2 px-5 py-2.5 sm:px-6 sm:py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium sm:ml-auto disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {locationLoading ? (
               <>
