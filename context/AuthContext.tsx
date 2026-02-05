@@ -8,7 +8,7 @@ import React, {
   useMemo,
   useState,
 } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { api, clearAuthData, getAccessToken } from "@/lib/axios";
 import type { User } from "@/types/auth";
 
@@ -129,55 +129,73 @@ export function AuthGuard({
   allowedRoles?: Array<User["role"]>;
 }) {
   const router = useRouter();
+  const pathname = usePathname();
   const { isAuthenticated, loading, role } = useAuth();
-  const [isChecking, setIsChecking] = useState(true);
+  const [shouldRender, setShouldRender] = useState(false);
 
   useEffect(() => {
-    // Wait for loading to complete
+    // Log for debugging
+    console.log("🔐 AuthGuard Check:", {
+      pathname,
+      loading,
+      isAuthenticated,
+      role,
+      allowedRoles,
+      hasToken: !!getAccessToken(),
+    });
+
+    // Still loading - don't do anything yet
     if (loading) {
-      setIsChecking(true);
+      setShouldRender(false);
       return;
     }
 
-    // Redirect if not authenticated
-    if (!isAuthenticated) {
+    // Check if we have a token but no user yet (shouldn't happen, but defensive)
+    const token = getAccessToken();
+    if (token && !isAuthenticated) {
+      console.log("⚠️ Have token but not authenticated, waiting...");
+      setShouldRender(false);
+      return;
+    }
+
+    // Not authenticated and no token - redirect to login
+    if (!isAuthenticated && !token) {
+      console.log("❌ Not authenticated, redirecting to login");
+      setShouldRender(false);
       router.replace("/login");
-      setIsChecking(false);
       return;
     }
 
-    // Wait for role to be loaded before checking permissions
+    // Authenticated but no role yet - wait
     if (isAuthenticated && !role) {
-      setIsChecking(true);
-      return; // Still loading user data
-    }
-
-    // Now check if role matches allowed roles
-    if (allowedRoles && role && !allowedRoles.includes(role)) {
-      router.replace(getDashboardPath(role));
-      setIsChecking(false);
+      console.log("⏳ Authenticated but no role yet, waiting...");
+      setShouldRender(false);
       return;
     }
 
-    // All checks passed
-    setIsChecking(false);
-  }, [allowedRoles, isAuthenticated, loading, role, router]);
+    // Check role permissions
+    if (allowedRoles && role && !allowedRoles.includes(role)) {
+      console.log("🚫 Wrong role, redirecting to dashboard");
+      setShouldRender(false);
+      router.replace(getDashboardPath(role));
+      return;
+    }
 
-  // Show loading during auth check OR while role is being loaded
-  if (loading || isChecking || (isAuthenticated && !role)) {
+    // All checks passed - render content
+    console.log("✅ Auth check passed, rendering content");
+    setShouldRender(true);
+  }, [allowedRoles, isAuthenticated, loading, role, router, pathname]);
+
+  // Show loading spinner
+  if (loading || !shouldRender) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-white">
-        <div className="h-12 w-12 animate-spin rounded-full border-4 border-slate-900 border-t-transparent" />
+        <div className="text-center">
+          <div className="h-12 w-12 animate-spin rounded-full border-4 border-slate-900 border-t-transparent mx-auto mb-4" />
+          <p className="text-sm text-slate-600">Verifying access...</p>
+        </div>
       </div>
     );
-  }
-
-  // Don't render if not authenticated
-  if (!isAuthenticated) return null;
-
-  // Don't render if wrong role
-  if (allowedRoles && role && !allowedRoles.includes(role)) {
-    return null;
   }
 
   return <>{children}</>;
