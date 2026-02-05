@@ -69,12 +69,12 @@ export default function DoctorsList({
   const handleBookNow = async (doctorId: number) => {
     try {
       setNavigatingToDoctorId(doctorId);
-      console.log("Navigating to appointment form for doctor:", doctorId);
+      console.log("[v0] Navigating to appointment form for doctor:", doctorId);
 
-      // Use push instead of replace to maintain history
-      await router.push(`/patient/${doctorId}/appointment-form`);
+      // Push to appointment form - this will trigger server-side data fetching
+      router.push(`/patient/${doctorId}/appointment-form`);
     } catch (error) {
-      console.error("Navigation error:", error);
+      console.error("[v0] Navigation error:", error);
       setNavigatingToDoctorId(null);
     }
   };
