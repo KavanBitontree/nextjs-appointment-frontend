@@ -70,7 +70,8 @@ function TopNavbar({
                       {user?.email}
                     </p>
                     <p className="text-xs text-slate-600 mt-1">
-                      Patient Account
+                      {user?.role ? `${user.role[0].toUpperCase()}${user.role.slice(1)}` : "User"}{" "}
+                      Account
                     </p>
                   </div>
 

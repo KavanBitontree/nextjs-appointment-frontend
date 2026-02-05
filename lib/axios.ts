@@ -8,10 +8,10 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
 export const api = axios.create({
   baseURL: API_BASE_URL,
+  withCredentials: true,
   headers: {
     "Content-Type": "application/json",
   },
-  withCredentials: true,
 });
 
 const refreshClient = axios.create({
@@ -20,19 +20,21 @@ const refreshClient = axios.create({
 });
 
 /* ============================
-   Refresh State
+   Refresh Control
 ============================ */
 
 let isRefreshing = false;
 
-let failedQueue: {
-  resolve: (token: string | null) => void;
+type FailedRequest = {
+  resolve: (token: string) => void;
   reject: (error: unknown) => void;
-}[] = [];
+};
 
-const processQueue = (error: unknown, token: string | null = null) => {
+let failedQueue: FailedRequest[] = [];
+
+const processQueue = (error: unknown, token?: string) => {
   failedQueue.forEach((p) => {
-    error ? p.reject(error) : p.resolve(token);
+    error ? p.reject(error) : p.resolve(token!);
   });
   failedQueue = [];
 };
@@ -41,30 +43,26 @@ const processQueue = (error: unknown, token: string | null = null) => {
    Request Interceptor
 ============================ */
 
-api.interceptors.request.use(
-  (config) => {
-    if (typeof window === "undefined") return config;
+api.interceptors.request.use((config) => {
+  if (typeof window === "undefined") return config;
 
-    const url = config.url || "";
+  const url = config.url ?? "";
 
-    // 🚫 NEVER attach Authorization to auth endpoints
-    if (
-      url.includes("/auth/login") ||
-      url.includes("/auth/refresh") ||
-      url.includes("/auth/signup")
-    ) {
-      return config;
-    }
-
-    const accessToken = localStorage.getItem("access_token");
-    if (accessToken) {
-      config.headers.Authorization = `Bearer ${accessToken}`;
-    }
-
+  if (
+    url.includes("/auth/login") ||
+    url.includes("/auth/refresh") ||
+    url.includes("/auth/signup")
+  ) {
     return config;
-  },
-  (error) => Promise.reject(error),
-);
+  }
+
+  const token = localStorage.getItem("access_token");
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+
+  return config;
+});
 
 /* ============================
    Response Interceptor
@@ -78,36 +76,32 @@ api.interceptors.response.use(
     };
 
     const status = error.response?.status;
-    const url = originalRequest?.url || "";
+    const url = originalRequest.url ?? "";
 
-    // 🚫 Auth endpoints should never trigger refresh
-    const isAuthEndpoint =
+    const isAuthRoute =
       url.includes("/auth/login") ||
       url.includes("/auth/refresh") ||
       url.includes("/auth/signup");
 
-    if (status === 401 && !originalRequest._retry && !isAuthEndpoint) {
+    if (status === 401 && !originalRequest._retry && !isAuthRoute) {
       if (isRefreshing) {
         return new Promise((resolve, reject) => {
           failedQueue.push({ resolve, reject });
-        })
-          .then((token) => {
-            if (!token) return Promise.reject(error);
-            originalRequest.headers = {
-              ...originalRequest.headers,
-              Authorization: `Bearer ${token}`,
-            };
-            return api(originalRequest);
-          })
-          .catch((err) => Promise.reject(err));
+        }).then((token) => {
+          originalRequest.headers = {
+            ...originalRequest.headers,
+            Authorization: `Bearer ${token}`,
+          };
+          return api(originalRequest);
+        });
       }
 
       originalRequest._retry = true;
       isRefreshing = true;
 
       try {
-        const response = await refreshClient.post("/auth/refresh", {});
-        const { access_token } = response.data;
+        const { data } = await refreshClient.post("/auth/refresh");
+        const { access_token } = data;
 
         localStorage.setItem("access_token", access_token);
         api.defaults.headers.common.Authorization = `Bearer ${access_token}`;
@@ -121,11 +115,9 @@ api.interceptors.response.use(
 
         return api(originalRequest);
       } catch (refreshError) {
-        processQueue(refreshError, null);
+        processQueue(refreshError);
         clearAuthData();
-        if (typeof window !== "undefined") {
-          window.location.href = "/login";
-        }
+        window.location.href = "/login";
         return Promise.reject(refreshError);
       } finally {
         isRefreshing = false;
