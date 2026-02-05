@@ -3,6 +3,7 @@
 import { AuthGuard } from "@/context/AuthContext";
 import PatientLayout from "@/components/patient/PatientLayout";
 import AppointmentForm from "@/components/patient/AppointmentForm";
+import { useEffect } from "react";
 
 interface Doctor {
   id: number;
@@ -37,6 +38,15 @@ export default function AppointmentFormPage({
   doctorData,
   slotsData,
 }: AppointmentFormPageProps) {
+  // Debug logging for production issues
+  useEffect(() => {
+    console.log("AppointmentFormPage mounted", {
+      doctorId,
+      hasDoctor: !!doctorData,
+      slotsCount: slotsData?.length || 0,
+    });
+  }, [doctorId, doctorData, slotsData]);
+
   return (
     <AuthGuard allowedRoles={["patient"]}>
       <PatientLayout>

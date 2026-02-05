@@ -43,26 +43,31 @@ const processQueue = (error: unknown, token?: string) => {
    Request Interceptor
 ============================ */
 
-api.interceptors.request.use((config) => {
-  if (typeof window === "undefined") return config;
+api.interceptors.request.use(
+  (config) => {
+    if (typeof window === "undefined") return config;
 
-  const url = config.url ?? "";
+    const url = config.url ?? "";
 
-  if (
-    url.includes("/auth/login") ||
-    url.includes("/auth/refresh") ||
-    url.includes("/auth/signup")
-  ) {
+    if (
+      url.includes("/auth/login") ||
+      url.includes("/auth/refresh") ||
+      url.includes("/auth/signup")
+    ) {
+      return config;
+    }
+
+    const token = localStorage.getItem("access_token");
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+
     return config;
-  }
-
-  const token = localStorage.getItem("access_token");
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-
-  return config;
-});
+  },
+  (error) => {
+    return Promise.reject(error);
+  },
+);
 
 /* ============================
    Response Interceptor
@@ -117,7 +122,12 @@ api.interceptors.response.use(
       } catch (refreshError) {
         processQueue(refreshError);
         clearAuthData();
-        window.location.href = "/login";
+
+        // Only redirect if we're in the browser
+        if (typeof window !== "undefined") {
+          window.location.href = "/login";
+        }
+
         return Promise.reject(refreshError);
       } finally {
         isRefreshing = false;
@@ -133,12 +143,15 @@ api.interceptors.response.use(
 ============================ */
 
 export const clearAuthData = () => {
+  if (typeof window === "undefined") return;
+
   localStorage.removeItem("access_token");
   localStorage.removeItem("user_role");
   localStorage.removeItem("user_id");
 };
 
 export const getAccessToken = () => {
+  if (typeof window === "undefined") return null;
   return localStorage.getItem("access_token");
 };
 

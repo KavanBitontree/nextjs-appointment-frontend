@@ -54,7 +54,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           : data.role;
 
       setUser({ ...data, role: normalizedRole });
-    } catch {
+    } catch (error) {
+      console.error("Error loading user:", error);
       clearAuthData();
       setUser(null);
     } finally {
@@ -129,21 +130,41 @@ export function AuthGuard({
 }) {
   const router = useRouter();
   const { isAuthenticated, loading, role } = useAuth();
+  const [isChecking, setIsChecking] = useState(true);
 
   useEffect(() => {
-    if (loading) return;
-
-    if (!isAuthenticated) {
-      router.replace("/login");
+    // Wait for loading to complete
+    if (loading) {
+      setIsChecking(true);
       return;
     }
 
+    // Redirect if not authenticated
+    if (!isAuthenticated) {
+      router.replace("/login");
+      setIsChecking(false);
+      return;
+    }
+
+    // Wait for role to be loaded before checking permissions
+    if (isAuthenticated && !role) {
+      setIsChecking(true);
+      return; // Still loading user data
+    }
+
+    // Now check if role matches allowed roles
     if (allowedRoles && role && !allowedRoles.includes(role)) {
       router.replace(getDashboardPath(role));
+      setIsChecking(false);
+      return;
     }
+
+    // All checks passed
+    setIsChecking(false);
   }, [allowedRoles, isAuthenticated, loading, role, router]);
 
-  if (loading) {
+  // Show loading during auth check OR while role is being loaded
+  if (loading || isChecking || (isAuthenticated && !role)) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-white">
         <div className="h-12 w-12 animate-spin rounded-full border-4 border-slate-900 border-t-transparent" />
@@ -151,7 +172,13 @@ export function AuthGuard({
     );
   }
 
+  // Don't render if not authenticated
   if (!isAuthenticated) return null;
+
+  // Don't render if wrong role
+  if (allowedRoles && role && !allowedRoles.includes(role)) {
+    return null;
+  }
 
   return <>{children}</>;
 }

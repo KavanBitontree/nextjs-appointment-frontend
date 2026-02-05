@@ -66,9 +66,17 @@ export default function DoctorsList({
   const doctors = initialData?.doctors || [];
   const total = initialData?.total || 0;
 
-  const handleBookNow = (doctorId: number) => {
-    setNavigatingToDoctorId(doctorId);
-    router.push(`/patient/${doctorId}/appointment-form`);
+  const handleBookNow = async (doctorId: number) => {
+    try {
+      setNavigatingToDoctorId(doctorId);
+      console.log("Navigating to appointment form for doctor:", doctorId);
+
+      // Use push instead of replace to maintain history
+      await router.push(`/patient/${doctorId}/appointment-form`);
+    } catch (error) {
+      console.error("Navigation error:", error);
+      setNavigatingToDoctorId(null);
+    }
   };
 
   if (isPending || loading) {
