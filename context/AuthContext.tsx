@@ -153,12 +153,15 @@ export function AuthGuard({
     }
 
     // Now check if role matches allowed roles
-    if (allowedRoles && role && !allowedRoles.includes(role)) {
+    // Only redirect if role is explicitly loaded and doesn't match
+    if (isAuthenticated && role && allowedRoles && !allowedRoles.includes(role)) {
+      console.log("[v0] Role mismatch:", role, "allowed:", allowedRoles);
       router.replace(getDashboardPath(role));
       setIsChecking(false);
       return;
     }
 
+    console.log("[v0] AuthGuard: All checks passed for role:", role);
     // All checks passed
     setIsChecking(false);
   }, [allowedRoles, isAuthenticated, loading, role, router]);
