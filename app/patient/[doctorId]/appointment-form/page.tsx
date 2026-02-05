@@ -85,22 +85,17 @@ export default async function AppointmentPage({
   const accessToken = cookieStore.get("access_token")?.value;
 
   if (!accessToken) {
-    console.log("[v0] No access token found, redirecting to login");
     redirect("/login");
   }
 
   const resolvedParams = await params;
   const doctorId = resolvedParams.doctorId;
 
-  console.log("[v0] Loading appointment form for doctor:", doctorId);
-
   try {
     const [doctorData, slotsData] = await Promise.all([
       getDoctorDetails(doctorId, accessToken),
       getDoctorSlots(doctorId, accessToken),
     ]);
-
-    console.log("[v0] Successfully loaded doctor data and slots");
 
     return (
       <AppointmentFormPage
@@ -110,7 +105,7 @@ export default async function AppointmentPage({
       />
     );
   } catch (error) {
-    console.error("[v0] Error loading appointment page:", error);
+    console.error("Error loading appointment page:", error);
     redirect("/patient/dashboard?error=failed_to_load");
   }
 }

@@ -66,15 +66,12 @@ export default function DoctorsList({
   const doctors = initialData?.doctors || [];
   const total = initialData?.total || 0;
 
-  const handleBookNow = async (doctorId: number) => {
+  const handleBookNow = (doctorId: number) => {
     try {
       setNavigatingToDoctorId(doctorId);
-      console.log("[v0] Navigating to appointment form for doctor:", doctorId);
-
-      // Push to appointment form - this will trigger server-side data fetching
       router.push(`/patient/${doctorId}/appointment-form`);
     } catch (error) {
-      console.error("[v0] Navigation error:", error);
+      console.error("Navigation error:", error);
       setNavigatingToDoctorId(null);
     }
   };
