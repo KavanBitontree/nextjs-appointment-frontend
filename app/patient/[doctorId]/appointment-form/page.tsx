@@ -45,7 +45,6 @@ async function getDoctorDetails(doctorId: string, accessToken: string) {
 }
 
 async function getDoctorSlots(doctorId: string, accessToken: string) {
-  // Fetch slots for the next 30 days
   const today = new Date();
   const endDate = new Date();
   endDate.setDate(today.getDate() + 30);
@@ -54,7 +53,7 @@ async function getDoctorSlots(doctorId: string, accessToken: string) {
     doctor_id: doctorId,
     start_date: today.toISOString().split("T")[0],
     end_date: endDate.toISOString().split("T")[0],
-    status: "FREE", // Only fetch available slots
+    status: "FREE",
   });
 
   const response = await fetch(
