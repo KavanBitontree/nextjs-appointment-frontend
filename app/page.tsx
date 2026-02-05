@@ -7,9 +7,11 @@ import {
   User,
   HeartPulse,
 } from "lucide-react";
+import PublicOnly from "@/components/PublicOnly";
 
 export default function Home() {
   return (
+    <PublicOnly>
     <main className="min-h-screen bg-white px-6 py-16">
       <div className="mx-auto flex max-w-6xl flex-col gap-16">
         <header className="rounded-3xl bg-white p-10 shadow-lg border border-slate-200">
@@ -134,5 +136,6 @@ export default function Home() {
         </section>
       </div>
     </main>
+    </PublicOnly>
   );
 }
