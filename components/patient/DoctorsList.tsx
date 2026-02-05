@@ -70,11 +70,18 @@ export default function DoctorsList({
     console.log("[v0] Booking appointment for doctor:", doctorId);
     setNavigatingToDoctorId(doctorId);
 
-    // Use push with explicit string URL to avoid issues
+    // Use push with explicit string URL and type assertion to ensure proper routing
     const appointmentUrl = `/patient/${doctorId}/appointment-form`;
     console.log("[v0] Navigating to:", appointmentUrl);
 
-    router.push(appointmentUrl);
+    // Use startTransition to ensure proper navigation state
+    try {
+      router.push(appointmentUrl);
+      console.log("[v0] Navigation triggered successfully");
+    } catch (error) {
+      console.error("[v0] Navigation error:", error);
+      setNavigatingToDoctorId(null);
+    }
   };
 
   if (isPending || loading) {

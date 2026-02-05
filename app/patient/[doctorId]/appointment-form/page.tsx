@@ -25,26 +25,35 @@ interface Slot {
 }
 
 async function getDoctorDetails(doctorId: string, accessToken: string) {
-  const response = await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL}/doctors/${doctorId}`,
-    {
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+
+  try {
+    const response = await fetch(`${apiUrl}/doctors/${doctorId}`, {
       headers: {
         Authorization: `Bearer ${accessToken}`,
         "Content-Type": "application/json",
       },
       credentials: "include",
       cache: "no-store",
-    },
-  );
+      signal: AbortSignal.timeout(10000), // 10 second timeout
+    });
 
-  if (!response.ok) {
-    throw new Error("Failed to fetch doctor details");
+    if (!response.ok) {
+      console.error(
+        `[appointment-page] Doctor fetch failed: ${response.status} ${response.statusText}`,
+      );
+      throw new Error(`Failed to fetch doctor details: ${response.statusText}`);
+    }
+
+    return response.json();
+  } catch (error) {
+    console.error("[appointment-page] Doctor fetch error:", error);
+    throw error;
   }
-
-  return response.json();
 }
 
 async function getDoctorSlots(doctorId: string, accessToken: string) {
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
   const today = new Date();
   const endDate = new Date();
   endDate.setDate(today.getDate() + 30);
@@ -56,23 +65,32 @@ async function getDoctorSlots(doctorId: string, accessToken: string) {
     status: "FREE",
   });
 
-  const response = await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL}/patient/view/slots?${params.toString()}`,
-    {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        "Content-Type": "application/json",
+  try {
+    const response = await fetch(
+      `${apiUrl}/patient/view/slots?${params.toString()}`,
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        cache: "no-store",
+        signal: AbortSignal.timeout(10000), // 10 second timeout
       },
-      credentials: "include",
-      cache: "no-store",
-    },
-  );
+    );
 
-  if (!response.ok) {
-    throw new Error("Failed to fetch doctor slots");
+    if (!response.ok) {
+      console.error(
+        `[appointment-page] Slots fetch failed: ${response.status} ${response.statusText}`,
+      );
+      throw new Error(`Failed to fetch doctor slots: ${response.statusText}`);
+    }
+
+    return response.json();
+  } catch (error) {
+    console.error("[appointment-page] Slots fetch error:", error);
+    throw error;
   }
-
-  return response.json();
 }
 
 export default async function AppointmentPage({
@@ -84,17 +102,26 @@ export default async function AppointmentPage({
   const accessToken = cookieStore.get("access_token")?.value;
 
   if (!accessToken) {
+    console.warn(
+      "[appointment-page] No access token found, redirecting to login",
+    );
     redirect("/login");
   }
 
   const resolvedParams = await params;
   const doctorId = resolvedParams.doctorId;
 
+  console.log(
+    `[appointment-page] Loading appointment for doctorId: ${doctorId}`,
+  );
+
   try {
     const [doctorData, slotsData] = await Promise.all([
       getDoctorDetails(doctorId, accessToken),
       getDoctorSlots(doctorId, accessToken),
     ]);
+
+    console.log(`[appointment-page] Successfully loaded doctor data and slots`);
 
     return (
       <AppointmentFormPage
@@ -104,7 +131,12 @@ export default async function AppointmentPage({
       />
     );
   } catch (error) {
-    console.error("Error loading appointment page:", error);
-    redirect("/patient/dashboard?error=failed_to_load");
+    console.error(
+      "[appointment-page] Error loading appointment page:",
+      error instanceof Error ? error.message : error,
+    );
+    // Don't redirect - instead show error page or return error component
+    // This prevents the redirect loop issue
+    throw error;
   }
 }
