@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { api } from "@/lib/axios";
 
 // Get API base URL (same as in axios.ts)
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 
 interface PaymentDetails {
   appointment_id: number;
@@ -54,7 +54,7 @@ function PaymentContent() {
         const url = token
           ? `/appointments/${appointmentId}/payment-details?token=${token}`
           : `/appointments/${appointmentId}/payment-details`;
-        
+
         const { data } = await api.get<PaymentDetails>(url);
         setPaymentDetails(data);
 
@@ -351,14 +351,16 @@ function PaymentContent() {
 // Main component with Suspense boundary
 export default function PaymentPage() {
   return (
-    <Suspense fallback={
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading payment page...</p>
+    <Suspense
+      fallback={
+        <div className="min-h-screen flex items-center justify-center bg-gray-50">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto"></div>
+            <p className="mt-4 text-gray-600">Loading payment page...</p>
+          </div>
         </div>
-      </div>
-    }>
+      }
+    >
       <PaymentContent />
     </Suspense>
   );

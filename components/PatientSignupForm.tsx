@@ -34,7 +34,7 @@ import {
   type PatientSignupFormData,
 } from "@/schemas/patientSignup";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 
 type PatientFormData = PatientSignupFormData;
 

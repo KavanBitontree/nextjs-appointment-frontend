@@ -15,7 +15,7 @@ import { useAuth } from "@/context/AuthContext";
 import { useToast } from "@/components/Toast";
 import { loginSchema, type LoginFormData } from "@/schemas/login";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 
 interface SessionConflict {
   device_model: string;
