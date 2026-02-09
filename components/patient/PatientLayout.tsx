@@ -25,7 +25,7 @@ export default function PatientLayout({
         notificationStatus,
         loading: notificationsLoading,
         pathname,
-        willShowBadge: notificationStatus !== "none",
+        willShowBadge: true,
       });
     }
   }, [notificationStatus, notificationsLoading, pathname]);
