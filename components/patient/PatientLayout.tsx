@@ -13,10 +13,22 @@ export default function PatientLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
-  const { notificationStatus, markAsSeen } = useAppointmentNotifications(
+  const { notificationStatus, markAsSeen, loading: notificationsLoading } = useAppointmentNotifications(
     "patient",
     "/patient/appointments", // Toast will navigate here when clicked
   );
+
+  // Debug notification status
+  useEffect(() => {
+    if (notificationStatus && notificationStatus !== "none") {
+      console.log("🔔 Patient notification status:", {
+        notificationStatus,
+        loading: notificationsLoading,
+        pathname,
+        willShowBadge: notificationStatus !== "none",
+      });
+    }
+  }, [notificationStatus, notificationsLoading, pathname]);
 
   // Mark as seen ONLY when user is actually on the appointments page
   useEffect(() => {

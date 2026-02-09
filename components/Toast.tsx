@@ -213,7 +213,7 @@ function ToastContainer({ toasts, onRemove }: ToastContainerProps) {
   };
 
   return (
-    <div className="fixed top-4 right-4 z-50 pointer-events-none">
+    <div className="fixed top-4 right-4 z-[100] pointer-events-none">
       <AnimatePresence>
         {toasts.map((toast) => {
           const styles = getToastStyles(toast.type, toast.appointmentType);

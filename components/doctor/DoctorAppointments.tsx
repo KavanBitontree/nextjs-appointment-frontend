@@ -19,6 +19,7 @@ import { motion } from "framer-motion";
 import SearchInput from "@/components/shared/SearchInput";
 import FilterSelect from "@/components/shared/FilterSelect";
 import Pagination from "@/components/shared/Pagination";
+import AppointmentsListSkeleton from "@/components/shared/AppointmentsListSkeleton";
 import { AppointmentStatus, AppointmentItem } from "@/lib/appointments_types";
 
 type DoctorAppointmentsProps = {
@@ -27,6 +28,7 @@ type DoctorAppointmentsProps = {
   initialPage: number;
   initialPageSize: number;
   initialTotalPages: number;
+  isLoading?: boolean;
 };
 
 const statusOptions = [
@@ -184,6 +186,7 @@ export default function DoctorAppointments({
   initialPage,
   initialPageSize,
   initialTotalPages,
+  isLoading = false,
 }: DoctorAppointmentsProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -289,7 +292,9 @@ export default function DoctorAppointments({
       </div>
 
       {/* Appointments List */}
-      {initialAppointments.length === 0 ? (
+      {isLoading ? (
+        <AppointmentsListSkeleton />
+      ) : initialAppointments.length === 0 ? (
         <div className="text-center py-12 bg-white rounded-2xl border border-slate-200">
           <Calendar className="mx-auto h-12 w-12 text-slate-400" />
           <h3 className="mt-4 text-lg font-medium text-slate-900">

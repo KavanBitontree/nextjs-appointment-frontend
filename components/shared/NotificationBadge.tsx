@@ -22,9 +22,9 @@ export default function NotificationBadge({
   if (status === "none") return null;
 
   const sizeClasses = {
-    sm: "w-2 h-2",
-    md: "w-2.5 h-2.5",
-    lg: "w-3 h-3",
+    sm: "w-2.5 h-2.5",
+    md: "w-3 h-3",
+    lg: "w-3.5 h-3.5",
   };
 
   const colorClasses = {
@@ -32,6 +32,12 @@ export default function NotificationBadge({
     yellow: "bg-yellow-500",
     green: "bg-green-500",
   };
+
+  // Ensure status is valid
+  if (!colorClasses[status as keyof typeof colorClasses]) {
+    console.warn("Invalid notification status:", status);
+    return null;
+  }
 
   const positionClasses = {
     "top-right": "top-0 right-0",
@@ -42,20 +48,23 @@ export default function NotificationBadge({
 
   return (
     <motion.span
-      initial={{ scale: 0 }}
-      animate={{ scale: 1 }}
-      exit={{ scale: 0 }}
+      initial={{ scale: 0, opacity: 0 }}
+      animate={{ scale: 1, opacity: 1 }}
+      exit={{ scale: 0, opacity: 0 }}
       transition={{ type: "spring", stiffness: 500, damping: 30 }}
       className={`
         absolute ${positionClasses[position]} 
         ${sizeClasses[size]} 
         ${colorClasses[status]}
-        rounded-full border-2 border-white
+        rounded-full border-2 border-white dark:border-slate-900
         shadow-lg
+        z-20
+        pointer-events-none
       `}
       style={{
         transform: "translate(25%, -25%)",
       }}
+      aria-label={`Notification: ${status}`}
     >
       {/* Pulse animation */}
       <motion.span

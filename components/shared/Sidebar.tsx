@@ -62,29 +62,31 @@ export default function Sidebar({
 
         {/* Navigation Items - Icons always visible */}
         <nav className="flex-1 py-3 sm:py-4 px-2 sm:px-3 space-y-2 overflow-y-auto">
-          {navItems?.map((item) => (
-            <Link key={item.href} href={item.href}>
-              <motion.div
-                whileHover={{ backgroundColor: "rgba(226, 232, 240, 0.1)" }}
-                className={`flex items-center gap-3 py-2.5 sm:py-3 px-2 sm:px-3 rounded-lg transition-all duration-200 flex-shrink-0 ${
-                  isActive(item.href)
-                    ? "bg-white text-slate-900 shadow-md"
-                    : "text-white hover:bg-slate-800"
-                }`}
-              >
-                {/* Icon - Always visible and properly sized with notification badge */}
-                <div className="flex-shrink-0 w-6 h-6 sm:w-6 sm:h-6 flex items-center justify-center relative">
-                  {item.icon}
-                  {/* Notification Badge */}
-                  {item.notificationStatus &&
-                    item.notificationStatus !== "none" && (
+          {navItems?.map((item) => {
+            const hasNotification = item.notificationStatus && item.notificationStatus !== "none";
+            return (
+              <Link key={item.href} href={item.href}>
+                <motion.div
+                  whileHover={{ backgroundColor: "rgba(226, 232, 240, 0.1)" }}
+                  className={`flex items-center gap-3 py-2.5 sm:py-3 px-2 sm:px-3 rounded-lg transition-all duration-200 flex-shrink-0 ${
+                    isActive(item.href)
+                      ? "bg-white text-slate-900 shadow-md"
+                      : "text-white hover:bg-slate-800"
+                  }`}
+                >
+                  {/* Icon - Always visible and properly sized with notification badge */}
+                  <div className="flex-shrink-0 w-6 h-6 sm:w-6 sm:h-6 flex items-center justify-center relative" style={{ overflow: "visible" }}>
+                    {item.icon}
+                    {/* Notification Badge */}
+                    {hasNotification && (
                       <NotificationBadge
-                        status={item.notificationStatus}
+                        status={item.notificationStatus as BadgeColor}
                         position="top-right"
                         size="sm"
+                        key={`badge-${item.href}-${item.notificationStatus}`}
                       />
                     )}
-                </div>
+                  </div>
                 {/* Text - Hidden when collapsed, smooth animation */}
                 <AnimatePresence mode="wait">
                   {isOpen && (
@@ -101,7 +103,8 @@ export default function Sidebar({
                 </AnimatePresence>
               </motion.div>
             </Link>
-          ))}
+          );
+          })}
         </nav>
       </motion.div>
 

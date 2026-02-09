@@ -6,7 +6,7 @@ import PatientAppointments from "./PatientAppointments";
 import type { AppointmentItem } from "@/lib/appointments_types";
 import { api } from "@/lib/axios";
 import AuthError from "@/components/shared/AuthError";
-import AppointmentsSkeleton from "@/components/shared/AppointmentsSkeleton";
+import AppointmentsListSkeleton from "@/components/shared/AppointmentsListSkeleton";
 
 export default function PatientAppointmentsContent() {
   const searchParams = useSearchParams();
@@ -15,6 +15,7 @@ export default function PatientAppointmentsContent() {
   const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
 
   const page = parseInt(searchParams.get("page") || "1");
   const pageSize = 10;
@@ -44,6 +45,7 @@ export default function PatientAppointmentsContent() {
         setTotalPages(
           response.data.total_pages || Math.ceil(response.data.total / pageSize),
         );
+        setIsInitialLoad(false);
       } catch (err: any) {
         console.error("Error fetching appointments:", err);
         const message =
@@ -51,6 +53,7 @@ export default function PatientAppointmentsContent() {
           err.message ||
           "Failed to load appointments";
         setError(message);
+        setIsInitialLoad(false);
       } finally {
         setLoading(false);
       }
@@ -58,10 +61,6 @@ export default function PatientAppointmentsContent() {
 
     fetchAppointments();
   }, [page, status, search, pageSize]);
-
-  if (loading) {
-    return <AppointmentsSkeleton />;
-  }
 
   if (error) {
     // If it's an auth error, show a more helpful message
@@ -84,6 +83,44 @@ export default function PatientAppointmentsContent() {
     );
   }
 
+  // Show skeleton only for initial load, or show appointments with loading state
+  if (isInitialLoad && loading) {
+    return (
+      <div className="space-y-4 md:space-y-6">
+        {/* Header */}
+        <div className="mb-6 sm:mb-8">
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-slate-900 mb-1 sm:mb-2">
+            My Appointments
+          </h1>
+          <p className="text-sm sm:text-base text-slate-700">
+            View and manage your appointments
+          </p>
+        </div>
+
+        {/* Search and Filter Bar - Always visible */}
+        <div className="bg-white rounded-2xl p-6 border border-slate-200 mb-6">
+          <div className="grid md:grid-cols-2 gap-4 mb-4">
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-slate-700 mb-2">
+                Doctor Name
+              </label>
+              <div className="h-10 bg-slate-100 rounded-lg animate-pulse" />
+            </div>
+          </div>
+          <div className="space-y-2">
+            <label className="block text-sm font-medium text-slate-700 mb-2">
+              Status
+            </label>
+            <div className="h-10 bg-slate-100 rounded-lg animate-pulse" />
+          </div>
+        </div>
+
+        {/* Appointments List Skeleton */}
+        <AppointmentsListSkeleton />
+      </div>
+    );
+  }
+
   return (
     <PatientAppointments
       initialAppointments={appointments}
@@ -91,6 +128,7 @@ export default function PatientAppointmentsContent() {
       initialPage={page}
       initialPageSize={pageSize}
       initialTotalPages={totalPages}
+      isLoading={loading && !isInitialLoad}
     />
   );
 }
