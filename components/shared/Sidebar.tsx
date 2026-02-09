@@ -5,11 +5,13 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { Menu, X } from "lucide-react";
+import NotificationBadge, { BadgeColor } from "./NotificationBadge";
 
 export interface NavItem {
   label: string;
   icon: React.ReactNode;
   href: string;
+  notificationStatus?: BadgeColor; // NEW: Add notification support
 }
 
 interface SidebarProps {
@@ -70,9 +72,18 @@ export default function Sidebar({
                     : "text-white hover:bg-slate-800"
                 }`}
               >
-                {/* Icon - Always visible and properly sized */}
-                <div className="flex-shrink-0 w-6 h-6 sm:w-6 sm:h-6 flex items-center justify-center">
+                {/* Icon - Always visible and properly sized with notification badge */}
+                <div className="flex-shrink-0 w-6 h-6 sm:w-6 sm:h-6 flex items-center justify-center relative">
                   {item.icon}
+                  {/* Notification Badge */}
+                  {item.notificationStatus &&
+                    item.notificationStatus !== "none" && (
+                      <NotificationBadge
+                        status={item.notificationStatus}
+                        position="top-right"
+                        size="sm"
+                      />
+                    )}
                 </div>
                 {/* Text - Hidden when collapsed, smooth animation */}
                 <AnimatePresence mode="wait">

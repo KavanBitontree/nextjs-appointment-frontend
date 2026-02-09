@@ -240,6 +240,7 @@ export default function DoctorAppointments({
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.6 }}
+      className="w-full"
     >
       {/* Header */}
       <div className="mb-6 sm:mb-8">
@@ -252,8 +253,8 @@ export default function DoctorAppointments({
       </div>
 
       {/* Search and Filter Bar */}
-      <div className="bg-white rounded-2xl p-6 border border-slate-200 mb-6">
-        <div className="grid md:grid-cols-2 gap-4 mb-4">
+      <div className="bg-white rounded-2xl p-4 sm:p-6 border border-slate-200 mb-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
           <SearchInput
             label="Patient Name"
             placeholder="Search by patient name..."
@@ -297,7 +298,7 @@ export default function DoctorAppointments({
             >
               <div className="flex flex-col gap-4">
                 {/* Top Section - Status Badge */}
-                <div className="flex items-start justify-between gap-3">
+                <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
                   <div className="flex-1">
                     <h3 className="text-lg sm:text-xl font-semibold text-slate-900">
                       {appointment.patient_name || "Patient"}
@@ -309,22 +310,26 @@ export default function DoctorAppointments({
                       </p>
                     )}
                   </div>
-                  {getStatusBadge(appointment.status as AppointmentStatus)}
+                  <div className="self-start">
+                    {getStatusBadge(appointment.status as AppointmentStatus)}
+                  </div>
                 </div>
 
                 {/* Middle Section - Appointment Info */}
                 <div className="space-y-3">
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-sm">
+                  <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-sm">
                     <div className="flex items-center gap-2 text-slate-700">
-                      <Calendar className="h-4 w-4 text-slate-400" />
-                      <span>{formatDate(appointment.slot_date)}</span>
+                      <Calendar className="h-4 w-4 text-slate-400 flex-shrink-0" />
+                      <span className="truncate">
+                        {formatDate(appointment.slot_date)}
+                      </span>
                     </div>
                     <div className="flex items-center gap-2 text-slate-700">
-                      <Clock className="h-4 w-4 text-slate-400" />
+                      <Clock className="h-4 w-4 text-slate-400 flex-shrink-0" />
                       <span>{appointment.slot_time}</span>
                     </div>
                     <div className="flex items-center gap-2 text-slate-700">
-                      <CreditCard className="h-4 w-4 text-slate-400" />
+                      <CreditCard className="h-4 w-4 text-slate-400 flex-shrink-0" />
                       <span>₹{appointment.opd_fees}</span>
                     </div>
                   </div>
@@ -375,16 +380,16 @@ export default function DoctorAppointments({
 
                   {/* Action Buttons */}
                   {appointment.status === AppointmentStatus.REQUESTED && (
-                    <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+                    <div className="flex flex-col xs:flex-row gap-2 w-full sm:w-auto">
                       <button
                         onClick={() => handleAction(appointment.id, "approve")}
-                        className="flex-1 sm:flex-none px-5 py-2.5 bg-green-600 text-white rounded-lg hover:bg-green-700 active:bg-green-800 transition-colors font-semibold shadow-md hover:shadow-lg"
+                        className="flex-1 xs:flex-none px-4 sm:px-5 py-2.5 bg-green-600 text-white rounded-lg hover:bg-green-700 active:bg-green-800 transition-colors font-semibold shadow-md hover:shadow-lg text-sm sm:text-base"
                       >
                         Approve
                       </button>
                       <button
                         onClick={() => handleAction(appointment.id, "reject")}
-                        className="flex-1 sm:flex-none px-5 py-2.5 bg-red-600 text-white rounded-lg hover:bg-red-700 active:bg-red-800 transition-colors font-semibold shadow-md hover:shadow-lg"
+                        className="flex-1 xs:flex-none px-4 sm:px-5 py-2.5 bg-red-600 text-white rounded-lg hover:bg-red-700 active:bg-red-800 transition-colors font-semibold shadow-md hover:shadow-lg text-sm sm:text-base"
                       >
                         Reject
                       </button>

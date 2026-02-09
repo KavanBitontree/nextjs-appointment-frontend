@@ -9,6 +9,7 @@ import {
   toISODate,
 } from "./date";
 import type { DoctorSlotDTO } from "./types";
+import DoctorCalendarSkeleton from "./DoctorCalendarSkeleton";
 import {
   Loader,
   CheckCircle,
@@ -282,6 +283,11 @@ export default function DoctorCalendarPage() {
     const m = month.toLocaleString(undefined, { month: "long" });
     return `${m} ${month.getFullYear()}`;
   }, [month]);
+
+  if (loading && !slots.length) {
+    // Initial load: show full-page skeleton instead of partial text
+    return <DoctorCalendarSkeleton />;
+  }
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 sm:gap-4 md:gap-6 p-2 sm:p-4 md:p-6 min-h-screen bg-slate-50">

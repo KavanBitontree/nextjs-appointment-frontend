@@ -1,12 +1,12 @@
 import DoctorAppointments from "@/components/doctor/DoctorAppointments";
-import DoctorLayout from "@/components/doctor/DoctorLayout";
 import { AuthGuard } from "@/context/AuthContext";
 import { getDoctorAppointments } from "@/lib/appointments_api";
-import { AppointmentItem } from "@/lib/appointments_api";
+import { AppointmentItem } from "@/lib/appointments_types";
+import DoctorLayout from "@/components/doctor/DoctorLayout";
 
 export const metadata = {
   title: "Appointments - Aarogya ABS",
-  description: "View your appointments",
+  description: "Manage your appointments",
 };
 
 type PageProps = {
@@ -17,7 +17,7 @@ type PageProps = {
   }>;
 };
 
-export default async function AppointmentsPage({ searchParams }: PageProps) {
+async function AppointmentsContent({ searchParams }: PageProps) {
   // ✅ unwrap promise
   const params = await searchParams;
 
@@ -47,23 +47,31 @@ export default async function AppointmentsPage({ searchParams }: PageProps) {
     console.error("Error fetching appointments:", err);
   }
 
+  if (error) {
+    return (
+      <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-red-800">
+        <p className="font-medium">Error loading appointments</p>
+        <p className="text-sm mt-1">{error}</p>
+      </div>
+    );
+  }
+
+  return (
+    <DoctorAppointments
+      initialAppointments={appointments}
+      initialTotal={total}
+      initialPage={page}
+      initialPageSize={pageSize}
+      initialTotalPages={totalPages}
+    />
+  );
+}
+
+export default function AppointmentsPage({ searchParams }: PageProps) {
   return (
     <AuthGuard allowedRoles={["doctor"]}>
       <DoctorLayout>
-        {error ? (
-          <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-red-800">
-            <p className="font-medium">Error loading appointments</p>
-            <p className="text-sm mt-1">{error}</p>
-          </div>
-        ) : (
-          <DoctorAppointments
-            initialAppointments={appointments}
-            initialTotal={total}
-            initialPage={page}
-            initialPageSize={pageSize}
-            initialTotalPages={totalPages}
-          />
-        )}
+        <AppointmentsContent searchParams={searchParams} />
       </DoctorLayout>
     </AuthGuard>
   );

@@ -1,5 +1,7 @@
+import { Suspense } from "react";
 import DoctorLayout from "@/components/doctor/DoctorLayout";
 import DoctorCalendarPage from "@/components/doctor/calendar/DoctorCalendarPage";
+import DoctorCalendarSkeleton from "@/components/doctor/calendar/DoctorCalendarSkeleton";
 import { AuthGuard } from "@/context/AuthContext";
 
 export const metadata = {
@@ -11,10 +13,10 @@ export default function DoctorCalendarRoute() {
   return (
     <AuthGuard allowedRoles={["doctor"]}>
       <DoctorLayout>
-        <DoctorCalendarPage />
+        <Suspense fallback={<DoctorCalendarSkeleton />}>
+          <DoctorCalendarPage />
+        </Suspense>
       </DoctorLayout>
     </AuthGuard>
   );
 }
-
-
