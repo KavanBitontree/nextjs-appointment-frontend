@@ -29,6 +29,18 @@ export const getDashboardPath = (role?: string | null) => {
   return "/login";
 };
 
+// Helper function to clear all notification session storage
+// FIXED: Now clears BOTH badge AND toast keys for both roles
+const clearNotificationStorage = () => {
+  // Clear badge keys
+  sessionStorage.removeItem("appointment_badge_seen_doctor");
+  sessionStorage.removeItem("appointment_badge_seen_patient");
+
+  // Clear toast keys (THIS WAS MISSING!)
+  sessionStorage.removeItem("appointment_toast_shown_doctor");
+  sessionStorage.removeItem("appointment_toast_shown_patient");
+};
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
@@ -54,6 +66,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           : data.role;
 
       setUser({ ...data, role: normalizedRole });
+
+      // REMOVED: Do NOT clear notification storage on login!
+      // The storage should only be cleared on logout.
+      // Clearing here prevents the toast from showing on fresh login.
     } catch (error) {
       console.error("Error loading user:", error);
       clearAuthData();
@@ -91,6 +107,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         // ignore network errors
       } finally {
         clearAuthData();
+        clearNotificationStorage(); // Clear notifications on logout (CORRECT)
         setUser(null);
         router.replace(redirectTo || "/login");
       }
