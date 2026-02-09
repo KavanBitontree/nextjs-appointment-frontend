@@ -2,14 +2,13 @@
  * Server Actions for Appointment Notifications
  *
  * Logic:
- * - All statuses: Only show if updated within last 24 hours
- * - REQUESTED (doctors): Show recent requests - they need to approve
- * - APPROVED (patients): Show recent approvals - they need to pay
- * - REJECTED: Show recent rejections (informational)
- * - PAID: Show recent payments (informational)
+ * - REQUESTED (doctors): Always show - they need to approve (action required)
+ * - APPROVED (patients): Always show - they need to pay (action required)
+ * - REJECTED: Only show if updated within last 7 days (informational)
+ * - PAID: Only show if updated within last 7 days (informational)
  *
- * FIXED: Now tolerates appointments slightly in the future (up to 1 hour)
- * to handle clock skew and timezone issues
+ * This ensures action-required notifications always show, while
+ * informational notifications only show for recent updates
  */
 
 "use server";
@@ -34,13 +33,11 @@ export interface NotificationData {
 }
 
 /**
- * Check if an appointment was updated within the last 24 hours
- * Used for informational notifications (REJECTED, PAID)
- *
- * FIXED: Now allows appointments up to 1 hour in the future to handle:
- * - Clock skew between servers
- * - Timezone conversion issues
- * - Race conditions during appointment creation
+ * Check if an appointment was updated within the last 7 days
+ * Handles UTC timestamps from server and compares with current UTC time
+ * 
+ * IST (UTC+5:30) is automatically handled by JavaScript Date objects
+ * All comparisons are done in UTC milliseconds for accuracy
  */
 function isRecentlyUpdated(updatedAtUTC: string | null | undefined): boolean {
   if (!updatedAtUTC) {
@@ -49,7 +46,10 @@ function isRecentlyUpdated(updatedAtUTC: string | null | undefined): boolean {
   }
 
   try {
+    // Parse the UTC timestamp from database
     const updatedDate = new Date(updatedAtUTC);
+    
+    // Get current time (will be in UTC on Vercel server)
     const now = new Date();
 
     if (isNaN(updatedDate.getTime())) {
@@ -57,26 +57,29 @@ function isRecentlyUpdated(updatedAtUTC: string | null | undefined): boolean {
       return false;
     }
 
-    // Calculate the difference in milliseconds
+    // Calculate the difference in milliseconds (timezone-independent)
     const diffMs = now.getTime() - updatedDate.getTime();
 
     // Convert to hours
     const diffHours = diffMs / (1000 * 60 * 60);
+    const diffDays = diffHours / 24;
 
-    // FIXED: Allow appointments up to 1 hour in the future (negative diffHours)
-    // This handles clock skew and timezone issues
-    // Original: diffHours >= 0 (rejected future dates)
-    // New: diffHours >= -1 (allows up to 1 hour in future)
-    const isRecent = diffHours <= 24 && diffHours >= -1;
+    // Allow appointments up to 1 hour in the future (handles clock skew)
+    // Show notifications for updates within last 7 days (168 hours)
+    const isRecent = diffHours <= 168 && diffHours >= -1;
 
-    console.log("📅 Date check:", {
+    console.log("📅 Date check (UTC comparison):", {
       updatedAt: updatedAtUTC,
-      updatedDate: updatedDate.toISOString(),
-      now: now.toISOString(),
+      updatedDateUTC: updatedDate.toISOString(),
+      updatedDateLocal: updatedDate.toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' }),
+      nowUTC: now.toISOString(),
+      nowLocal: now.toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' }),
       diffHours: diffHours.toFixed(2),
+      diffDays: diffDays.toFixed(2),
       isRecent,
-      isPast: diffHours >= 0,
-      isFuture: diffHours < 0,
+      reason: !isRecent 
+        ? (diffHours > 168 ? 'Too old (>7 days)' : 'In future (>1 hour)')
+        : 'Within 7 days',
     });
 
     return isRecent;
@@ -140,32 +143,22 @@ export async function getAppointmentNotifications(
           break;
 
         case "REQUESTED":
-          // For doctors: Show REQUESTED appointments updated in last 24 hours (they need to approve)
-          // For patients: Don't show (they already know they requested it)
+          // For doctors: Show ALL REQUESTED appointments (they need to approve)
+          // Don't filter by date - these need action regardless of when requested
           if (role === "doctor") {
-            const recentlyRequested = isRecentlyUpdated(apt.updated_at);
-            if (recentlyRequested) {
-              counts.requested++;
-              console.log("✅ Counted REQUESTED appointment for doctor");
-            } else {
-              console.log("⏭️ Skipped old REQUESTED appointment");
-            }
+            counts.requested++;
+            console.log("✅ Counted REQUESTED appointment for doctor");
           } else {
             console.log("⏭️ Skipped REQUESTED appointment for patient");
           }
           break;
 
         case "APPROVED":
-          // For patients: Show APPROVED appointments updated in last 24 hours (they need to pay)
-          // For doctors: Don't show (informational only)
+          // For patients: Show ALL APPROVED appointments (they need to pay)
+          // Don't filter by date - these need action regardless of when approved
           if (role === "patient") {
-            const recentlyApproved = isRecentlyUpdated(apt.updated_at);
-            if (recentlyApproved) {
-              counts.approved++;
-              console.log("✅ Counted APPROVED appointment for patient");
-            } else {
-              console.log("⏭️ Skipped old APPROVED appointment");
-            }
+            counts.approved++;
+            console.log("✅ Counted APPROVED appointment for patient");
           } else {
             console.log("⏭️ Skipped APPROVED appointment for doctor");
           }
@@ -179,7 +172,7 @@ export async function getAppointmentNotifications(
             console.log("✅ Counted PAID appointment (recent)");
           } else {
             console.log(
-              "⏭️ Skipped PAID appointment (older than 24 hours)",
+              "⏭️ Skipped PAID appointment (older than 7 days)",
               apt.updated_at,
             );
           }
