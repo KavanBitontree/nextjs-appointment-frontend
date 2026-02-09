@@ -2,7 +2,7 @@
 
 import { useEffect, useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { api } from "@/lib/axios";
+import { api, getAccessToken } from "@/lib/axios";
 
 // Get API base URL (same as in axios.ts)
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
@@ -45,6 +45,14 @@ function PaymentContent() {
     if (!appointmentId) {
       setError("No appointment ID provided");
       setLoading(false);
+      return;
+    }
+
+    // If there is no email token AND no access token (not logged in),
+    // redirect to login instead of hitting the backend and getting
+    // "Authorization header missing". The email flow will always have `token`.
+    if (!token && !getAccessToken()) {
+      router.replace("/login");
       return;
     }
 
@@ -111,8 +119,15 @@ function PaymentContent() {
 
     setProcessing(true);
 
-    // Redirect to backend Stripe payment page with token if present
-    const tokenParam = token ? `&token=${token}` : "";
+    // Redirect to backend Stripe payment page.
+    // Priority of auth:
+    // 1) `token` from email link (query param)
+    // 2) access token from localStorage (normal logged-in flow), passed as `token`
+    const accessToken = getAccessToken();
+    const tokenParamFromAuth =
+      !token && accessToken ? `&token=${encodeURIComponent(accessToken)}` : "";
+    const tokenParam = token ? `&token=${token}` : tokenParamFromAuth;
+
     window.location.href = `${API_BASE_URL}/pay?appointment_id=${appointmentId}${tokenParam}`;
   };
 
