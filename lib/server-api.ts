@@ -82,7 +82,7 @@ async function serverFetch<T>(
 
 // ==================== TYPE DEFINITIONS ====================
 
-type DashboardOverview = {
+export type DashboardOverview = {
   doctor_id: number;
   doctor_name: string;
   speciality: string;
@@ -138,7 +138,7 @@ type MonthlyRevenue = {
   weekly_breakdown: WeeklyRevenue[];
 };
 
-type RevenueAllTimeframes = {
+export type RevenueAllTimeframes = {
   daily: DailyRevenue[];
   weekly: WeeklyRevenue[];
   monthly: MonthlyRevenue[];
@@ -159,14 +159,14 @@ type AppointmentStatusBreakdown = {
   }>;
 };
 
-type AppointmentStatusAllPeriods = {
+export type AppointmentStatusAllPeriods = {
   all_time: AppointmentStatusBreakdown;
   this_month: AppointmentStatusBreakdown;
   this_week: AppointmentStatusBreakdown;
   today: AppointmentStatusBreakdown;
 };
 
-type LeaveStats = {
+export type LeaveStats = {
   month: number;
   year: number;
   total_days_in_month: number;
@@ -185,7 +185,7 @@ type SlotPreference = {
   percentage_of_total: number;
 };
 
-type SlotPreferencesAll = {
+export type SlotPreferencesAll = {
   total_completed_appointments: number;
   slot_duration_hours: number;
   total_slots_per_day: number;
