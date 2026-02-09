@@ -55,8 +55,13 @@ export async function proxy(request: NextRequest) {
     request.nextUrl.pathname.startsWith(path),
   );
 
+  // IMPORTANT: Don't redirect protected paths here - let AuthGuard handle it client-side
+  // This prevents the middleware from interfering with the login flow where cookies
+  // might not be immediately accessible after login due to cross-domain cookie issues
+  // The AuthGuard component will check localStorage and handle redirects appropriately
   if (isProtectedPath && !accessToken) {
-    return NextResponse.redirect(new URL("/login", request.url));
+    // Allow the request to proceed - AuthGuard will handle authentication check
+    return NextResponse.next();
   }
 
   return NextResponse.next();

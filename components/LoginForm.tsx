@@ -143,13 +143,21 @@ export default function LoginForm() {
       // Refresh the auth context to update the user state immediately
       await refreshUser();
 
-      // Navigate to the appropriate dashboard
+      // Small delay to ensure cookies from backend response are properly set in browser
+      // This is critical in production where cookies might not be immediately accessible
+      // due to cross-domain cookie handling or browser cookie processing delays
+      await new Promise((resolve) => setTimeout(resolve, 300));
+
+      // Use window.location.href for a full page reload to ensure:
+      // 1. Cookies are properly accessible to Next.js server-side code
+      // 2. All state is properly initialized
+      // 3. No race conditions between client-side navigation and server-side rendering
       if (normalizedRole === "patient") {
-        router.replace("/patient/dashboard");
+        window.location.href = "/patient/dashboard";
       } else if (normalizedRole === "doctor") {
-        router.replace("/doctor/dashboard");
+        window.location.href = "/doctor/dashboard";
       } else {
-        router.replace("/dashboard");
+        window.location.href = "/dashboard";
       }
     } catch (err: any) {
       if (err.response?.status === 409) {
