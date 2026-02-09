@@ -1,35 +1,25 @@
 "use client";
 
-import { useEffect, useState, use } from "react";
+import { useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import DoctorAppointments from "./DoctorAppointments";
 import type { AppointmentItem } from "@/lib/appointments_types";
 import { api } from "@/lib/axios";
 import AuthError from "@/components/shared/AuthError";
+import AppointmentsSkeleton from "@/components/shared/AppointmentsSkeleton";
 
-type SearchParams = Promise<{
-  page?: string;
-  status?: string;
-  search?: string;
-}>;
-
-interface DoctorAppointmentsContentProps {
-  searchParams: SearchParams;
-}
-
-export default function DoctorAppointmentsContent({
-  searchParams,
-}: DoctorAppointmentsContentProps) {
-  const params = use(searchParams);
+export default function DoctorAppointmentsContent() {
+  const searchParams = useSearchParams();
   const [appointments, setAppointments] = useState<AppointmentItem[]>([]);
   const [total, setTotal] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const page = parseInt(params.page ?? "1", 10);
+  const page = parseInt(searchParams.get("page") ?? "1", 10);
   const pageSize = 10;
-  const status = params.status ?? "";
-  const search = params.search ?? "";
+  const status = searchParams.get("status") ?? "";
+  const search = searchParams.get("search") ?? "";
 
   useEffect(() => {
     async function fetchAppointments() {
@@ -70,14 +60,7 @@ export default function DoctorAppointmentsContent({
   }, [page, status, search, pageSize]);
 
   if (loading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-white">
-        <div className="text-center">
-          <div className="h-12 w-12 animate-spin rounded-full border-4 border-slate-900 border-t-transparent mx-auto mb-4" />
-          <p className="text-sm text-slate-600">Loading appointments...</p>
-        </div>
-      </div>
-    );
+    return <AppointmentsSkeleton />;
   }
 
   if (error) {

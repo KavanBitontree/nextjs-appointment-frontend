@@ -1,27 +1,21 @@
-import DoctorAppointments from "@/components/doctor/DoctorAppointments";
+import { Suspense } from "react";
 import { AuthGuard } from "@/context/AuthContext";
-import { AppointmentItem } from "@/lib/appointments_types";
 import DoctorLayout from "@/components/doctor/DoctorLayout";
 import DoctorAppointmentsContent from "@/components/doctor/DoctorAppointmentsContent";
+import AppointmentsSkeleton from "@/components/shared/AppointmentsSkeleton";
 
 export const metadata = {
   title: "Appointments - Aarogya ABS",
   description: "Manage your appointments",
 };
 
-type PageProps = {
-  searchParams: Promise<{
-    page?: string;
-    status?: string;
-    search?: string;
-  }>;
-};
-
-export default function AppointmentsPage({ searchParams }: PageProps) {
+export default function AppointmentsPage() {
   return (
     <AuthGuard allowedRoles={["doctor"]}>
       <DoctorLayout>
-        <DoctorAppointmentsContent searchParams={searchParams} />
+        <Suspense fallback={<AppointmentsSkeleton />}>
+          <DoctorAppointmentsContent />
+        </Suspense>
       </DoctorLayout>
     </AuthGuard>
   );

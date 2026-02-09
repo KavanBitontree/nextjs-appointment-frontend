@@ -12,6 +12,7 @@ import type {
 
 // Import client-side API functions (we'll create these)
 import { api } from "@/lib/axios";
+import DoctorDashboardSkeleton from "./DoctorDashboardSkeleton";
 
 type DashboardData = {
   dashboardOverview: DashboardOverview;
@@ -80,14 +81,7 @@ export default function DoctorDashboardContent() {
   }, []);
 
   if (loading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-white">
-        <div className="text-center">
-          <div className="h-12 w-12 animate-spin rounded-full border-4 border-slate-900 border-t-transparent mx-auto mb-4" />
-          <p className="text-sm text-slate-600">Loading dashboard...</p>
-        </div>
-      </div>
-    );
+    return <DoctorDashboardSkeleton />;
   }
 
   if (error) {
