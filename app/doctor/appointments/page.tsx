@@ -3,6 +3,7 @@ import { AuthGuard } from "@/context/AuthContext";
 import { getDoctorAppointments } from "@/lib/appointments_api";
 import { AppointmentItem } from "@/lib/appointments_types";
 import DoctorLayout from "@/components/doctor/DoctorLayout";
+import AuthError from "@/components/shared/AuthError";
 
 export const metadata = {
   title: "Appointments - Aarogya ABS",
@@ -48,6 +49,12 @@ async function AppointmentsContent({ searchParams }: PageProps) {
   }
 
   if (error) {
+    // If it's an auth error, show a more helpful message
+    if (error.includes("Unauthorized") || error.includes("No access token")) {
+      return (
+        <AuthError message="Please refresh the page to reload your appointments." />
+      );
+    }
     return (
       <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-red-800">
         <p className="font-medium">Error loading appointments</p>
