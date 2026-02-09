@@ -138,6 +138,14 @@ export default function LoginForm() {
       localStorage.setItem("user_id", user_id.toString());
       localStorage.setItem("user_role", normalizedRole);
 
+      // Clear notification storage on fresh login to ensure notifications show
+      // This must happen before page reload so notifications can show on the new page
+      sessionStorage.removeItem("appointment_badge_seen_doctor");
+      sessionStorage.removeItem("appointment_badge_seen_patient");
+      sessionStorage.removeItem("appointment_toast_shown_doctor");
+      sessionStorage.removeItem("appointment_toast_shown_patient");
+      console.log("🆕 Cleared notification storage on fresh login");
+
       showToast("Login successful!", "success");
 
       // Refresh the auth context to update the user state immediately

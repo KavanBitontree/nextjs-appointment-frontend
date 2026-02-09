@@ -6,6 +6,7 @@ import React, {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from "react";
 import { useRouter, usePathname } from "next/navigation";
@@ -46,6 +47,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [initialized, setInitialized] = useState(false);
+  const previousUserRef = useRef<User | null>(null);
 
   const loadUser = useCallback(async () => {
     const token = getAccessToken();
@@ -53,6 +55,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (!token) {
       setUser(null);
       setLoading(false);
+      previousUserRef.current = null;
       return;
     }
 
@@ -65,22 +68,30 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           ? (data.role.toLowerCase() as User["role"])
           : data.role;
 
-      setUser({ ...data, role: normalizedRole });
+      const newUser = { ...data, role: normalizedRole };
 
-      // REMOVED: Do NOT clear notification storage on login!
-      // The storage should only be cleared on logout.
-      // Clearing here prevents the toast from showing on fresh login.
+      // Clear notification storage on fresh login (when transitioning from null to authenticated)
+      // This ensures notifications show on fresh login after page reload
+      const wasLoggedOut = previousUserRef.current === null && user === null;
+      if (wasLoggedOut && token) {
+        console.log("🆕 Fresh login detected (after reload) - clearing notification storage");
+        clearNotificationStorage();
+      }
+
+      previousUserRef.current = newUser;
+      setUser(newUser);
     } catch (error) {
       console.error("Error loading user:", error);
       // Only clear auth data on 401 (unauthorized)
       if ((error as any)?.response?.status === 401) {
         clearAuthData();
         setUser(null);
+        previousUserRef.current = null;
       }
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [user]);
 
   // run ONCE on mount
   useEffect(() => {

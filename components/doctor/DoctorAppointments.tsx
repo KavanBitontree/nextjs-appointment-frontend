@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useCallback } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useCallback, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import {
   Calendar,
   Clock,
@@ -186,9 +186,23 @@ export default function DoctorAppointments({
   initialTotalPages,
 }: DoctorAppointmentsProps) {
   const router = useRouter();
-  const [searchQuery, setSearchQuery] = useState("");
-  const [statusFilter, setStatusFilter] = useState("");
+  const searchParams = useSearchParams();
+  
+  // Initialize state from URL params
+  const [searchQuery, setSearchQuery] = useState(searchParams.get("search") || "");
+  const [statusFilter, setStatusFilter] = useState(searchParams.get("status") || "");
   const [currentPage, setCurrentPage] = useState(initialPage);
+
+  // Sync state when URL params change
+  useEffect(() => {
+    const urlSearch = searchParams.get("search") || "";
+    const urlStatus = searchParams.get("status") || "";
+    const urlPage = parseInt(searchParams.get("page") || "1");
+    
+    setSearchQuery(urlSearch);
+    setStatusFilter(urlStatus);
+    setCurrentPage(urlPage);
+  }, [searchParams, initialPage]);
 
   const handleSearch = useCallback(
     (value: string) => {

@@ -12,6 +12,7 @@
 
 import { useEffect, useState, useRef } from "react";
 import { useToast } from "@/components/Toast";
+import { useAuth } from "@/context/AuthContext";
 import { getAppointmentNotifications } from "@/actions/notificationActions";
 import type {
   NotificationStatus,
@@ -38,6 +39,7 @@ export function useAppointmentNotifications(
     useState<NotificationStatus>("none");
   const [loading, setLoading] = useState(true);
   const { showAppointmentToast } = useToast();
+  const { isAuthenticated, loading: authLoading } = useAuth();
 
   // Use ref to track if initial fetch has happened to prevent double-fetching
   const initialFetchDone = useRef(false);
@@ -126,27 +128,47 @@ export function useAppointmentNotifications(
   };
 
   useEffect(() => {
+    // Wait for authentication to complete
+    if (authLoading) {
+      console.log("⏳ Waiting for authentication...");
+      return;
+    }
+
+    // Only fetch if user is authenticated
+    if (!isAuthenticated) {
+      console.log("⏸️ User not authenticated, skipping notification fetch");
+      setLoading(false);
+      return;
+    }
+
     // Prevent double-fetching in strict mode
     if (initialFetchDone.current) return;
     initialFetchDone.current = true;
 
     console.log("🚀 Initial notification fetch for role:", role);
 
-    // On mount, fetch and potentially show toast (only once per session)
-    fetchNotificationStatus(true);
+    // Small delay to ensure sessionStorage is cleared on fresh login
+    // This gives AuthContext time to clear notification storage
+    const timer = setTimeout(() => {
+      // On mount, fetch and potentially show toast (only once per session)
+      fetchNotificationStatus(true);
+    }, 300); // Small delay to ensure auth state is ready
 
     // Poll every 30 seconds for updates (without showing toast)
     const interval = setInterval(() => {
-      console.log("⏰ Polling for notification updates");
-      fetchNotificationStatus(false);
+      if (isAuthenticated) {
+        console.log("⏰ Polling for notification updates");
+        fetchNotificationStatus(false);
+      }
     }, 30000);
 
     return () => {
       console.log("🧹 Cleaning up notification polling");
+      clearTimeout(timer);
       clearInterval(interval);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [role]);
+  }, [role, isAuthenticated, authLoading]);
 
   return {
     notificationStatus,
