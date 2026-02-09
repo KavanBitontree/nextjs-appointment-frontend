@@ -131,63 +131,35 @@ export function AuthGuard({
   const router = useRouter();
   const pathname = usePathname();
   const { isAuthenticated, loading, role } = useAuth();
-  const [shouldRender, setShouldRender] = useState(false);
 
   useEffect(() => {
-    // Log for debugging
     console.log("🔐 AuthGuard Check:", {
       pathname,
       loading,
       isAuthenticated,
       role,
       allowedRoles,
-      hasToken: !!getAccessToken(),
     });
 
-    // Still loading - don't do anything yet
-    if (loading) {
-      setShouldRender(false);
-      return;
-    }
+    // ⛔ Wait until auth is resolved
+    if (loading) return;
 
-    // Check if we have a token but no user yet (shouldn't happen, but defensive)
-    const token = getAccessToken();
-    if (token && !isAuthenticated) {
-      console.log("⚠️ Have token but not authenticated, waiting...");
-      setShouldRender(false);
-      return;
-    }
-
-    // Not authenticated and no token - redirect to login
-    if (!isAuthenticated && !token) {
-      console.log("❌ Not authenticated, redirecting to login");
-      setShouldRender(false);
+    // ❌ Not authenticated
+    if (!isAuthenticated) {
       router.replace("/login");
       return;
     }
 
-    // Authenticated but no role yet - wait
-    if (isAuthenticated && !role) {
-      console.log("⏳ Authenticated but no role yet, waiting...");
-      setShouldRender(false);
-      return;
-    }
+    // ⏳ Role not ready yet
+    if (!role) return;
 
-    // Check role permissions
-    if (allowedRoles && role && !allowedRoles.includes(role)) {
-      console.log("🚫 Wrong role, redirecting to dashboard");
-      setShouldRender(false);
+    // 🚫 Role not allowed
+    if (allowedRoles && !allowedRoles.includes(role)) {
       router.replace(getDashboardPath(role));
-      return;
     }
-
-    // All checks passed - render content
-    console.log("✅ Auth check passed, rendering content");
-    setShouldRender(true);
   }, [allowedRoles, isAuthenticated, loading, role, router, pathname]);
 
-  // Show loading spinner
-  if (loading || !shouldRender) {
+  if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-white">
         <div className="text-center">
