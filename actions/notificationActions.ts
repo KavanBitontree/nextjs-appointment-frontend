@@ -2,10 +2,11 @@
  * Server Actions for Appointment Notifications
  *
  * Logic:
- * - REQUESTED (doctors): Always show - they need to approve
- * - APPROVED (patients): Always show - they need to pay
- * - REJECTED: Only show if updated within last 24 hours
- * - PAID: Only show if updated within last 24 hours
+ * - All statuses: Only show if updated within last 24 hours
+ * - REQUESTED (doctors): Show recent requests - they need to approve
+ * - APPROVED (patients): Show recent approvals - they need to pay
+ * - REJECTED: Show recent rejections (informational)
+ * - PAID: Show recent payments (informational)
  *
  * FIXED: Now tolerates appointments slightly in the future (up to 1 hour)
  * to handle clock skew and timezone issues
@@ -139,22 +140,32 @@ export async function getAppointmentNotifications(
           break;
 
         case "REQUESTED":
-          // For doctors: Always show REQUESTED appointments (they need to approve)
+          // For doctors: Show REQUESTED appointments updated in last 24 hours (they need to approve)
           // For patients: Don't show (they already know they requested it)
           if (role === "doctor") {
-            counts.requested++;
-            console.log("✅ Counted REQUESTED appointment for doctor");
+            const recentlyRequested = isRecentlyUpdated(apt.updated_at);
+            if (recentlyRequested) {
+              counts.requested++;
+              console.log("✅ Counted REQUESTED appointment for doctor");
+            } else {
+              console.log("⏭️ Skipped old REQUESTED appointment");
+            }
           } else {
             console.log("⏭️ Skipped REQUESTED appointment for patient");
           }
           break;
 
         case "APPROVED":
-          // For patients: Always show APPROVED appointments (they need to pay)
+          // For patients: Show APPROVED appointments updated in last 24 hours (they need to pay)
           // For doctors: Don't show (informational only)
           if (role === "patient") {
-            counts.approved++;
-            console.log("✅ Counted APPROVED appointment for patient");
+            const recentlyApproved = isRecentlyUpdated(apt.updated_at);
+            if (recentlyApproved) {
+              counts.approved++;
+              console.log("✅ Counted APPROVED appointment for patient");
+            } else {
+              console.log("⏭️ Skipped old APPROVED appointment");
+            }
           } else {
             console.log("⏭️ Skipped APPROVED appointment for doctor");
           }

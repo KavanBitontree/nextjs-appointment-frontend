@@ -196,18 +196,15 @@ export function AuthGuard({
     }
   }, [allowedRoles, isAuthenticated, loading, role, router, pathname, redirecting]);
 
-  // Show loading state while checking auth or redirecting
-  if (loading || redirecting) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-white">
-        <div className="text-center">
-          <div className="h-12 w-12 animate-spin rounded-full border-4 border-slate-900 border-t-transparent mx-auto mb-4" />
-          <p className="text-sm text-slate-600">
-            {loading ? "Verifying access..." : "Redirecting..."}
-          </p>
-        </div>
-      </div>
-    );
+  // Show children immediately - let the dashboard components handle their own loading states
+  // This prevents the "Verifying access..." jerk and shows skeleton loaders instead
+  if (loading) {
+    return <>{children}</>;
+  }
+
+  // If redirecting, show children (dashboard will show skeleton)
+  if (redirecting) {
+    return <>{children}</>;
   }
 
   // If not authenticated, show loading (will redirect)
