@@ -25,7 +25,7 @@ export default function DoctorLayout({
         notificationStatus,
         loading: notificationsLoading,
         pathname,
-        willShowBadge: notificationStatus !== "none",
+        willShowBadge: true,
       });
     }
   }, [notificationStatus, notificationsLoading, pathname]);
