@@ -68,57 +68,55 @@ function buildQueryString(params: FilterParams): string {
 
 /**
  * Server-side fetch helper
- * For appointments endpoints, uses internal API routes that can access cookies from browser requests
- * For other endpoints, directly calls backend with cookies forwarded
+ * Directly calls backend with cookies from Next.js cookies() function
+ * Cookies are accessible server-side via cookies() when called from server components/API routes
  */
 async function serverFetch<T>(
   endpoint: string,
   options: RequestInit = {},
 ): Promise<T> {
   const cookieStore = await cookies();
-  const accessToken = cookieStore.get("access_token")?.value;
+  let accessToken = cookieStore.get("access_token")?.value;
+
+  // If no access token, try to refresh using refresh token
+  if (!accessToken) {
+    const refreshToken = cookieStore.get("refresh_token")?.value;
+    if (refreshToken) {
+      try {
+        // Try to refresh the access token
+        const refreshResponse = await fetch(`${API_BASE_URL}/auth/refresh`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Cookie: `refresh_token=${refreshToken}`,
+          },
+          cache: "no-store",
+        });
+
+        if (refreshResponse.ok) {
+          const refreshData = await refreshResponse.json();
+          accessToken = refreshData.access_token;
+        }
+      } catch (error) {
+        console.error("Failed to refresh token in serverFetch:", error);
+      }
+    }
+  }
 
   if (!accessToken) {
     throw new AppointmentsAPIError(401, "Unauthorized - No access token");
   }
 
-  // Build cookie header from cookie store
+  // Directly call backend - cookies() gives us access to cookies set by backend
+  const url = `${API_BASE_URL}${endpoint}`;
+
+  // Forward all cookies to backend
   const allCookies = cookieStore.getAll();
   const cookieHeader = allCookies
     .map((cookie) => `${cookie.name}=${cookie.value}`)
     .join("; ");
 
-  // Use internal API routes for appointments to handle cookies properly
-  // These routes receive cookies from browser requests automatically
-  let url: string;
-  let useInternalRoute = false;
-
-  if (endpoint.includes("/appointments/my-appointments")) {
-    useInternalRoute = true;
-    const queryString = endpoint.includes("?") ? endpoint.split("?")[1] : "";
-    url = `/api/appointments/patient${queryString ? `?${queryString}` : ""}`;
-  } else if (endpoint.includes("/appointments/doctor-appointments")) {
-    useInternalRoute = true;
-    const queryString = endpoint.includes("?") ? endpoint.split("?")[1] : "";
-    url = `/api/appointments/doctor${queryString ? `?${queryString}` : ""}`;
-  } else {
-    // For other endpoints, use direct backend URL
-    url = `${API_BASE_URL}${endpoint}`;
-  }
-
-  // For internal routes, construct absolute URL for server-side fetch
-  let fullUrl = url;
-  if (useInternalRoute) {
-    // In production, use VERCEL_URL or construct from request headers
-    // For now, try to get from environment variables
-    const baseUrl =
-      process.env.NEXT_PUBLIC_APP_URL ||
-      (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null) ||
-      "http://localhost:3000";
-    fullUrl = `${baseUrl}${url}`;
-  }
-
-  const response = await fetch(fullUrl, {
+  const response = await fetch(url, {
     ...options,
     headers: {
       "Content-Type": "application/json",

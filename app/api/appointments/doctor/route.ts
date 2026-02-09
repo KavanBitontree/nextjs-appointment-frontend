@@ -5,7 +5,31 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 export async function GET(request: NextRequest) {
   try {
     // Get access token from cookies (sent by browser automatically)
-    const accessToken = request.cookies.get("access_token")?.value;
+    let accessToken = request.cookies.get("access_token")?.value;
+
+    // If no access token, try to refresh using refresh token
+    if (!accessToken) {
+      const refreshToken = request.cookies.get("refresh_token")?.value;
+      if (refreshToken) {
+        try {
+          const refreshResponse = await fetch(`${API_BASE_URL}/auth/refresh`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Cookie: `refresh_token=${refreshToken}`,
+            },
+            cache: "no-store",
+          });
+
+          if (refreshResponse.ok) {
+            const refreshData = await refreshResponse.json();
+            accessToken = refreshData.access_token;
+          }
+        } catch (error) {
+          console.error("Failed to refresh token:", error);
+        }
+      }
+    }
 
     if (!accessToken) {
       return NextResponse.json(

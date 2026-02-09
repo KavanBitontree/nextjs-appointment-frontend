@@ -18,7 +18,32 @@ async function serverFetch<T>(
   options: RequestInit = {},
 ): Promise<T> {
   const cookieStore = await cookies();
-  const accessToken = cookieStore.get("access_token")?.value;
+  let accessToken = cookieStore.get("access_token")?.value;
+
+  // If no access token, try to refresh using refresh token
+  if (!accessToken) {
+    const refreshToken = cookieStore.get("refresh_token")?.value;
+    if (refreshToken) {
+      try {
+        // Try to refresh the access token
+        const refreshResponse = await fetch(`${API_BASE_URL}/auth/refresh`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Cookie: `refresh_token=${refreshToken}`,
+          },
+          cache: "no-store",
+        });
+
+        if (refreshResponse.ok) {
+          const refreshData = await refreshResponse.json();
+          accessToken = refreshData.access_token;
+        }
+      } catch (error) {
+        console.error("Failed to refresh token in serverFetch:", error);
+      }
+    }
+  }
 
   if (!accessToken) {
     throw new ServerAPIError(401, "Unauthorized - No access token");
@@ -26,11 +51,18 @@ async function serverFetch<T>(
 
   const url = `${API_BASE_URL}${endpoint}`;
 
+  // Forward all cookies to backend
+  const allCookies = cookieStore.getAll();
+  const cookieHeader = allCookies
+    .map((cookie) => `${cookie.name}=${cookie.value}`)
+    .join("; ");
+
   const response = await fetch(url, {
     ...options,
     headers: {
       "Content-Type": "application/json",
       Authorization: `Bearer ${accessToken}`,
+      ...(cookieHeader && { Cookie: cookieHeader }),
       ...options.headers,
     },
     cache: "no-store", // Always fetch fresh data

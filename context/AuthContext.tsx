@@ -51,14 +51,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const token = getAccessToken();
 
     if (!token) {
-      // Small delay to check if token becomes available (e.g., after page reload with cookies)
-      await new Promise((resolve) => setTimeout(resolve, 100));
-      const retryToken = getAccessToken();
-      if (!retryToken) {
-        setUser(null);
-        setLoading(false);
-        return;
-      }
+      setUser(null);
+      setLoading(false);
+      return;
     }
 
     setLoading(true);
@@ -77,8 +72,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // Clearing here prevents the toast from showing on fresh login.
     } catch (error) {
       console.error("Error loading user:", error);
-      // Don't clear auth data immediately - might be a temporary network issue
-      // Only clear if it's a 401 (unauthorized)
+      // Only clear auth data on 401 (unauthorized)
       if ((error as any)?.response?.status === 401) {
         clearAuthData();
         setUser(null);
@@ -157,53 +151,55 @@ export function AuthGuard({
   const router = useRouter();
   const pathname = usePathname();
   const { isAuthenticated, loading, role } = useAuth();
-  const [hasRedirected, setHasRedirected] = useState(false);
+  const [redirecting, setRedirecting] = useState(false);
 
   useEffect(() => {
-    // ⛔ Wait until auth is resolved - add a small delay to ensure cookies are accessible
+    // ⛔ Wait until auth is resolved
     if (loading) {
-      // Reset redirect flag when loading starts
-      setHasRedirected(false);
+      setRedirecting(false);
       return;
     }
 
-    // Small delay to ensure cookies are accessible after login
-    const timer = setTimeout(() => {
-      // ❌ Not authenticated - only redirect if not already on login page
-      if (!isAuthenticated && !hasRedirected && pathname !== "/login") {
-        setHasRedirected(true);
+    // ❌ Not authenticated - redirect to login
+    if (!isAuthenticated) {
+      if (pathname !== "/login" && !redirecting) {
+        setRedirecting(true);
         router.replace("/login");
-        return;
       }
+      return;
+    }
 
-      // ⏳ Role not ready yet
-      if (!role) return;
+    // ⏳ Role not ready yet - wait
+    if (!role) return;
 
-      // 🚫 Role not allowed - only redirect if not already on the correct dashboard
-      if (allowedRoles && !allowedRoles.includes(role) && !hasRedirected) {
-        const correctPath = getDashboardPath(role);
-        if (pathname !== correctPath) {
-          setHasRedirected(true);
-          router.replace(correctPath);
-        }
+    // 🚫 Role not allowed - redirect to correct dashboard
+    if (allowedRoles && !allowedRoles.includes(role)) {
+      const correctPath = getDashboardPath(role);
+      if (pathname !== correctPath && !redirecting) {
+        setRedirecting(true);
+        router.replace(correctPath);
       }
-    }, 150); // Small delay to prevent race conditions with PublicOnly
+    } else {
+      // Role is allowed, stop redirecting
+      setRedirecting(false);
+    }
+  }, [allowedRoles, isAuthenticated, loading, role, router, pathname, redirecting]);
 
-    return () => clearTimeout(timer);
-  }, [allowedRoles, isAuthenticated, loading, role, router, pathname, hasRedirected]);
-
-  if (loading) {
+  // Show loading state while checking auth or redirecting
+  if (loading || redirecting) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-white">
         <div className="text-center">
           <div className="h-12 w-12 animate-spin rounded-full border-4 border-slate-900 border-t-transparent mx-auto mb-4" />
-          <p className="text-sm text-slate-600">Verifying access...</p>
+          <p className="text-sm text-slate-600">
+            {loading ? "Verifying access..." : "Redirecting..."}
+          </p>
         </div>
       </div>
     );
   }
 
-  // If not authenticated after loading, show loading state briefly before redirect
+  // If not authenticated, show loading (will redirect)
   if (!isAuthenticated) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-white">
