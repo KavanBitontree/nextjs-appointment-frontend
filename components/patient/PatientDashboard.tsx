@@ -12,6 +12,8 @@ interface AppointmentItem {
   [key: string]: any;
 }
 
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
+
 export default function PatientDashboard() {
   const { user } = useAuth();
   const [stats, setStats] = useState({
@@ -26,13 +28,22 @@ export default function PatientDashboard() {
         setLoading(true);
         console.log("🔄 Fetching patient appointments...");
 
-        // Call API route instead of direct import
+        // Call backend API directly with credentials
         const response = await fetch(
-          "/api/patient/appointments?page=1&page_size=100",
+          `${API_BASE_URL}/appointments/my-appointments?page=1&page_size=100`,
+          {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            credentials: "include", // Important: sends cookies with request
+          },
         );
 
         if (!response.ok) {
-          throw new Error("Failed to fetch appointments");
+          const errorData = await response.json().catch(() => ({}));
+          console.error("❌ API Error:", response.status, errorData);
+          throw new Error(errorData.detail || "Failed to fetch appointments");
         }
 
         const data = await response.json();
