@@ -27,18 +27,39 @@ export default function PatientDashboard() {
       try {
         setLoading(true);
         console.log("🔄 Fetching patient appointments...");
+        console.log("🌐 API URL:", API_BASE_URL);
 
-        // Call backend API directly with credentials
+        // Get access token from cookie
+        const getAccessToken = () => {
+          const cookies = document.cookie.split(";");
+          const accessTokenCookie = cookies.find((cookie) =>
+            cookie.trim().startsWith("access_token="),
+          );
+          return accessTokenCookie ? accessTokenCookie.split("=")[1] : null;
+        };
+
+        const accessToken = getAccessToken();
+        console.log("🔑 Access token found:", !!accessToken);
+
+        if (!accessToken) {
+          console.error("❌ No access token found in cookies");
+          throw new Error("Not authenticated");
+        }
+
+        // Call backend API directly with Authorization header
         const response = await fetch(
           `${API_BASE_URL}/appointments/my-appointments?page=1&page_size=100`,
           {
             method: "GET",
             headers: {
               "Content-Type": "application/json",
+              Authorization: `Bearer ${accessToken}`, // Send token in header
             },
-            credentials: "include", // Important: sends cookies with request
+            credentials: "include", // Also send cookies
           },
         );
+
+        console.log("📡 Response status:", response.status);
 
         if (!response.ok) {
           const errorData = await response.json().catch(() => ({}));
@@ -47,7 +68,10 @@ export default function PatientDashboard() {
         }
 
         const data = await response.json();
-        console.log("✅ Appointments fetched:", data);
+        console.log("✅ Appointments fetched:", {
+          total: data.total,
+          count: data.appointments?.length || 0,
+        });
 
         const appointments: AppointmentItem[] = data.appointments || [];
 
