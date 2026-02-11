@@ -35,6 +35,25 @@ interface DoctorProfileEditProps {
   saving?: boolean;
 }
 
+// Static list of common medical specialities
+const MEDICAL_SPECIALITIES = [
+  "General Physician",
+  "Paediatrician",
+  "Orthopaedic",
+  "Cardiologist",
+  "Dermatologist",
+  "Gynaecologist",
+  "Ophthalmologist",
+  "ENT Specialist",
+  "Dentist",
+  "Psychiatrist",
+  "Neurologist",
+  "Gastroenterologist",
+  "Urologist",
+  "Pulmonologist",
+  "Endocrinologist",
+];
+
 // Location Picker Component for Map
 function LocationPicker({
   formData,
@@ -294,14 +313,20 @@ export default function DoctorProfileEdit({
             <label className="block text-sm font-medium text-slate-700 mb-2">
               Speciality
             </label>
-            <input
-              type="text"
+            <select
               name="speciality"
               value={formData.speciality}
               onChange={handleChange}
               className="w-full px-4 py-3 bg-slate-50 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-400"
               required
-            />
+            >
+              <option value="">Select Speciality</option>
+              {MEDICAL_SPECIALITIES.map((spec) => (
+                <option key={spec} value={spec}>
+                  {spec}
+                </option>
+              ))}
+            </select>
             {errors.speciality && (
               <p className="mt-1 text-xs text-red-600">{errors.speciality}</p>
             )}
@@ -415,7 +440,7 @@ export default function DoctorProfileEdit({
               style={{ width: "100%", height: "100%" }}
               className="relative z-0"
             >
-              <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+              <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png}" />
               <LocationPicker formData={formData} setFormData={setFormData} />
             </MapContainer>
           </div>

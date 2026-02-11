@@ -16,6 +16,25 @@ interface DoctorFilterBarProps {
   onReset: () => void;
 }
 
+// Static list of common medical specialities (same as signup form)
+const MEDICAL_SPECIALITIES = [
+  "General Physician",
+  "Paediatrician",
+  "Orthopaedic",
+  "Cardiologist",
+  "Dermatologist",
+  "Gynaecologist",
+  "Ophthalmologist",
+  "ENT Specialist",
+  "Dentist",
+  "Psychiatrist",
+  "Neurologist",
+  "Gastroenterologist",
+  "Urologist",
+  "Pulmonologist",
+  "Endocrinologist",
+];
+
 export default function DoctorFilterBar({
   speciality: initialSpeciality,
   sortBy: initialSortBy,
@@ -88,11 +107,11 @@ export default function DoctorFilterBar({
                 className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-transparent"
               >
                 <option value="">All Specialities</option>
-                <option value="Cardiologist">Cardiologist</option>
-                <option value="Dermatologist">Dermatologist</option>
-                <option value="General Physician">General Physician</option>
-                <option value="Orthopedic">Orthopedic</option>
-                <option value="Neurologist">Neurologist</option>
+                {MEDICAL_SPECIALITIES.map((spec) => (
+                  <option key={spec} value={spec}>
+                    {spec}
+                  </option>
+                ))}
               </select>
             </div>
 
@@ -135,4 +154,3 @@ export default function DoctorFilterBar({
     </>
   );
 }
-

@@ -58,6 +58,25 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 
 type DoctorFormData = DoctorSignupFormData;
 
+// Static list of common medical specialities
+const MEDICAL_SPECIALITIES = [
+  "General Physician",
+  "Paediatrician",
+  "Orthopaedic",
+  "Cardiologist",
+  "Dermatologist",
+  "Gynaecologist",
+  "Ophthalmologist",
+  "ENT Specialist",
+  "Dentist",
+  "Psychiatrist",
+  "Neurologist",
+  "Gastroenterologist",
+  "Urologist",
+  "Pulmonologist",
+  "Endocrinologist",
+];
+
 // Map click component
 function LocationPicker({
   formData,
@@ -372,7 +391,7 @@ export default function DoctorSignupForm() {
       <motion.div
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
-            className="bg-white p-6 sm:p-8 rounded-3xl shadow-lg w-full max-w-md border border-slate-200"
+        className="bg-white p-6 sm:p-8 rounded-3xl shadow-lg w-full max-w-md border border-slate-200"
       >
         <Link
           href="/signup"
@@ -425,8 +444,7 @@ export default function DoctorSignupForm() {
               <label className="block text-sm font-medium text-slate-700 mb-2">
                 Speciality
               </label>
-              <input
-                type="text"
+              <select
                 name="speciality"
                 value={formData.speciality}
                 onChange={handleChange}
@@ -434,8 +452,14 @@ export default function DoctorSignupForm() {
                 onBlur={() => handleBlur("speciality")}
                 required
                 className={getInputClassName("speciality")}
-                placeholder="Cardiology"
-              />
+              >
+                <option value="">Select Speciality</option>
+                {MEDICAL_SPECIALITIES.map((speciality) => (
+                  <option key={speciality} value={speciality}>
+                    {speciality}
+                  </option>
+                ))}
+              </select>
               {fieldErrors.speciality && (
                 <p className="mt-1 text-xs text-red-600">
                   {fieldErrors.speciality}
@@ -718,6 +742,7 @@ export default function DoctorSignupForm() {
               >
                 {suggestions.map((suggestion: any, idx: number) => (
                   <button
+                    key={idx}
                     type="button"
                     onMouseDown={(e) => {
                       e.preventDefault(); // prevents blur
