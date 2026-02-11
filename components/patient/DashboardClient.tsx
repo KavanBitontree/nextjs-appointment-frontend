@@ -1,85 +1,18 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Calendar, FileText } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 
-interface AppointmentItem {
-  id: number;
-  status: string;
-  slot_date: string;
-  [key: string]: any;
+interface DashboardClientProps {
+  stats: {
+    upcomingAppointments: number;
+    totalAppointments: number;
+  };
 }
 
-export default function PatientDashboard() {
+export default function DashboardClient({ stats }: DashboardClientProps) {
   const { user } = useAuth();
-  const [stats, setStats] = useState({
-    upcomingAppointments: 0,
-    totalAppointments: 0,
-  });
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchStats = async () => {
-      try {
-        setLoading(true);
-        console.log("🔄 Fetching patient appointments...");
-
-        // Call API route instead of direct import
-        const response = await fetch(
-          "/api/patient/appointments?page=1&page_size=100",
-        );
-
-        if (!response.ok) {
-          throw new Error("Failed to fetch appointments");
-        }
-
-        const data = await response.json();
-        console.log("✅ Appointments fetched:", data);
-
-        const appointments: AppointmentItem[] = data.appointments || [];
-
-        // Calculate current month's upcoming appointments
-        const now = new Date();
-        const currentMonth = now.getMonth();
-        const currentYear = now.getFullYear();
-
-        const upcomingThisMonth = appointments.filter((apt) => {
-          // Only count APPROVED and PAID appointments
-          if (apt.status !== "APPROVED" && apt.status !== "PAID") {
-            return false;
-          }
-
-          const slotDate = new Date(apt.slot_date);
-          return (
-            slotDate.getMonth() === currentMonth &&
-            slotDate.getFullYear() === currentYear &&
-            slotDate >= now // Only future appointments
-          );
-        }).length;
-
-        const calculatedStats = {
-          upcomingAppointments: upcomingThisMonth,
-          totalAppointments: appointments.length,
-        };
-
-        console.log("📊 Calculated stats:", calculatedStats);
-
-        setStats(calculatedStats);
-      } catch (error) {
-        console.error("❌ Error fetching dashboard stats:", error);
-        setStats({
-          upcomingAppointments: 0,
-          totalAppointments: 0,
-        });
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchStats();
-  }, []);
 
   return (
     <>
@@ -111,13 +44,9 @@ export default function PatientDashboard() {
               </div>
               <div>
                 <p className="text-sm text-slate-600">Upcoming This Month</p>
-                {loading ? (
-                  <div className="h-9 w-12 bg-slate-200 animate-pulse rounded mt-1" />
-                ) : (
-                  <p className="text-3xl font-bold text-slate-900">
-                    {stats.upcomingAppointments}
-                  </p>
-                )}
+                <p className="text-3xl font-bold text-slate-900">
+                  {stats.upcomingAppointments}
+                </p>
               </div>
             </div>
           </motion.div>
@@ -134,13 +63,9 @@ export default function PatientDashboard() {
               </div>
               <div>
                 <p className="text-sm text-slate-600">Total Appointments</p>
-                {loading ? (
-                  <div className="h-9 w-12 bg-slate-200 animate-pulse rounded mt-1" />
-                ) : (
-                  <p className="text-3xl font-bold text-slate-900">
-                    {stats.totalAppointments}
-                  </p>
-                )}
+                <p className="text-3xl font-bold text-slate-900">
+                  {stats.totalAppointments}
+                </p>
               </div>
             </div>
           </motion.div>
