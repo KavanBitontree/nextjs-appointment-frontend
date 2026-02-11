@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect } from "react";
+import React, { useEffect, useRef } from "react";
 import { usePathname } from "next/navigation";
 import { CalendarDays, LayoutGrid, CalendarCheck2 } from "lucide-react";
 import DashboardLayout from "@/components/shared/DashboardLayout";
@@ -13,10 +13,17 @@ export default function DoctorLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
-  const { notificationStatus, markAsSeen, loading: notificationsLoading } = useAppointmentNotifications(
+  const {
+    notificationStatus,
+    markAsSeen,
+    loading: notificationsLoading,
+  } = useAppointmentNotifications(
     "doctor",
     "/doctor/appointments", // Toast will navigate here when clicked
   );
+
+  // Track if we've already marked as seen for this pathname
+  const markedAsSeenRef = useRef<string | null>(null);
 
   // Debug notification status
   useEffect(() => {
@@ -31,11 +38,21 @@ export default function DoctorLayout({
   }, [notificationStatus, notificationsLoading, pathname]);
 
   // Mark as seen ONLY when user is actually on the appointments page
+  // FIXED: Remove markAsSeen from dependencies to prevent multiple calls
   useEffect(() => {
-    if (pathname === "/doctor/appointments") {
+    if (
+      pathname === "/doctor/appointments" &&
+      markedAsSeenRef.current !== pathname
+    ) {
+      console.log("📍 User navigated to appointments page - marking as seen");
+      markedAsSeenRef.current = pathname;
       markAsSeen();
+    } else if (pathname !== "/doctor/appointments") {
+      // Reset when leaving appointments page
+      markedAsSeenRef.current = null;
     }
-  }, [pathname, markAsSeen]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pathname]); // Only depend on pathname, not markAsSeen
 
   const doctorNavItems: NavItem[] = [
     {
@@ -66,4 +83,3 @@ export default function DoctorLayout({
     </DashboardLayout>
   );
 }
- 

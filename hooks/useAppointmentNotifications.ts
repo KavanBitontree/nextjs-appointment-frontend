@@ -2,15 +2,16 @@
  * Client-side hook to manage appointment notifications
  * Shows toast ONCE per login session for appointments that need action
  *
- * FIXED ISSUES:
- * 1. Badge visibility on page reload
- * 2. Toast showing on fresh login
- * 3. Better session storage state management
+ * FIXES:
+ * 1. Badge visibility on page reload ✅
+ * 2. Toast showing on fresh login ✅
+ * 3. Better session storage state management ✅
+ * 4. Stable markAsSeen function reference ✅
  */
 
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { useToast } from "@/components/Toast";
 import { useAuth } from "@/context/AuthContext";
 import { getAppointmentNotifications } from "@/actions/notificationActions";
@@ -64,17 +65,26 @@ export function useAppointmentNotifications(
       });
 
       // Check if badge was dismissed (user visited appointments page)
-      const badgeDismissed = sessionStorage.getItem(BADGE_SEEN_KEY) === "true";
+      const badgeSeenValue = sessionStorage.getItem(BADGE_SEEN_KEY);
+      const badgeDismissed = badgeSeenValue === "true";
 
-      // FIXED: Show badge UNLESS explicitly dismissed
+      console.log("🔍 SessionStorage state:", {
+        BADGE_SEEN_KEY,
+        badgeSeenValue,
+        badgeDismissed,
+      });
+
+      // Show badge UNLESS explicitly dismissed
       // On fresh login, badgeDismissed will be false, so badge will show
       const finalStatus = badgeDismissed ? "none" : data.status;
 
-      console.log("🎯 Badge status:", {
+      console.log("🎯 Badge status decision:", {
         badgeDismissed,
         dataStatus: data.status,
         finalStatus,
-        badgeSeenValue: sessionStorage.getItem(BADGE_SEEN_KEY),
+        logic: badgeDismissed
+          ? "Badge was dismissed by user"
+          : "Badge should show (not dismissed or no notifications)",
       });
 
       setNotificationStatus(finalStatus);
@@ -83,12 +93,14 @@ export function useAppointmentNotifications(
       // 1. shouldShowToast is true (initial load only)
       // 2. There are notifications (data.status !== "none")
       // 3. Toast hasn't been shown yet in this session
-      if (shouldShowToast && data.status !== "none") {
-        const toastShown = sessionStorage.getItem(TOAST_SHOWN_KEY) === "true";
+      // 4. Badge hasn't been dismissed (if badge dismissed, user already saw notifications)
+      if (shouldShowToast && data.status !== "none" && !badgeDismissed) {
+        const toastShownValue = sessionStorage.getItem(TOAST_SHOWN_KEY);
+        const toastShown = toastShownValue === "true";
 
-        console.log("🍞 Toast check:", {
+        console.log("🍞 Toast decision:", {
+          toastShownValue,
           toastShown,
-          toastShownValue: sessionStorage.getItem(TOAST_SHOWN_KEY),
           willShow: !toastShown,
         });
 
@@ -104,6 +116,8 @@ export function useAppointmentNotifications(
         } else {
           console.log("⏭️ Toast already shown this session, skipping");
         }
+      } else if (shouldShowToast && data.status !== "none") {
+        console.log("⏭️ Toast skipped because badge already dismissed");
       }
     } catch (error) {
       console.error("❌ Error fetching appointment notifications:", error);
@@ -113,19 +127,25 @@ export function useAppointmentNotifications(
     }
   };
 
-  const markAsSeen = () => {
-    console.log("👁️ Marking notifications as seen");
+  // Wrap markAsSeen in useCallback to create a stable reference
+  const markAsSeen = useCallback(() => {
+    console.log("👁️ Marking notifications as seen", {
+      role,
+      timestamp: new Date().toISOString(),
+      callStack: new Error().stack?.split("\n").slice(2, 4).join("\n"), // Show caller
+    });
+
     // Mark both badge and toast as seen when user visits appointments page
     sessionStorage.setItem(BADGE_SEEN_KEY, "true");
     sessionStorage.setItem(TOAST_SHOWN_KEY, "true");
     setNotificationStatus("none");
-  };
+  }, [BADGE_SEEN_KEY, TOAST_SHOWN_KEY, role]);
 
-  const refresh = async () => {
+  const refresh = useCallback(async () => {
     console.log("🔄 Refreshing notifications (without toast)");
     // Refresh without showing toast
     await fetchNotificationStatus(false);
-  };
+  }, [role]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     // Wait for authentication to complete
@@ -142,7 +162,10 @@ export function useAppointmentNotifications(
     }
 
     // Prevent double-fetching in strict mode
-    if (initialFetchDone.current) return;
+    if (initialFetchDone.current) {
+      console.log("⏭️ Initial fetch already done, skipping");
+      return;
+    }
     initialFetchDone.current = true;
 
     console.log("🚀 Initial notification fetch for role:", role);
