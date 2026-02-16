@@ -108,6 +108,9 @@ api.interceptors.response.use(
 
       try {
         console.log("🔄 Access token expired, attempting refresh...");
+        console.log("🔍 API_BASE_URL:", API_BASE_URL);
+        console.log("🔍 withCredentials:", refreshClient.defaults.withCredentials);
+        
         const { data } = await refreshClient.post("/auth/refresh");
         const { access_token } = data;
 
@@ -123,8 +126,10 @@ api.interceptors.response.use(
         };
 
         return api(originalRequest);
-      } catch (refreshError) {
+      } catch (refreshError: any) {
         console.error("❌ Token refresh failed:", refreshError);
+        console.error("❌ Response status:", refreshError.response?.status);
+        console.error("❌ Response data:", refreshError.response?.data);
         processQueue(refreshError);
         clearAuthData();
 
