@@ -88,8 +88,10 @@ api.interceptors.response.use(
       url.includes("/auth/refresh") ||
       url.includes("/auth/signup");
 
+    // Handle 401 errors by attempting token refresh
     if (status === 401 && !originalRequest._retry && !isAuthRoute) {
       if (isRefreshing) {
+        // Queue this request while refresh is in progress
         return new Promise((resolve, reject) => {
           failedQueue.push({ resolve, reject });
         }).then((token) => {
@@ -105,9 +107,11 @@ api.interceptors.response.use(
       isRefreshing = true;
 
       try {
+        console.log("🔄 Access token expired, attempting refresh...");
         const { data } = await refreshClient.post("/auth/refresh");
         const { access_token } = data;
 
+        console.log("✅ Token refreshed successfully");
         localStorage.setItem("access_token", access_token);
         api.defaults.headers.common.Authorization = `Bearer ${access_token}`;
 
@@ -120,6 +124,7 @@ api.interceptors.response.use(
 
         return api(originalRequest);
       } catch (refreshError) {
+        console.error("❌ Token refresh failed:", refreshError);
         processQueue(refreshError);
         clearAuthData();
 
