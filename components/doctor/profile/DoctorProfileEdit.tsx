@@ -149,11 +149,19 @@ export default function DoctorProfileEdit({
   const [searching, setSearching] = useState(false);
   const debounceTimer = useRef<NodeJS.Timeout | null>(null);
   const [mapReady, setMapReady] = useState(false);
+  const [mapKey, setMapKey] = useState(0); // Add key to force remount
 
   useEffect(() => {
     // Import leaflet CSS on client side
     import("leaflet/dist/leaflet.css");
     setMapReady(true);
+    
+    // Cleanup on unmount
+    return () => {
+      setMapReady(false);
+      // Force new map instance on next mount
+      setMapKey(prev => prev + 1);
+    };
   }, []);
 
   const searchAddress = async (query: string) => {
@@ -435,12 +443,17 @@ export default function DoctorProfileEdit({
         {mapReady && (
           <div className="h-64 border rounded-lg overflow-hidden relative z-0">
             <MapContainer
+              key={mapKey}
               center={[formData.latitude || 20, formData.longitude || 77]}
               zoom={5}
               style={{ width: "100%", height: "100%" }}
               className="relative z-0"
+              scrollWheelZoom={true}
             >
-              <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png}" />
+              <TileLayer 
+                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+              />
               <LocationPicker formData={formData} setFormData={setFormData} />
             </MapContainer>
           </div>

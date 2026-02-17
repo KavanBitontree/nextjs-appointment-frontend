@@ -50,11 +50,14 @@ export default function AarogyaAssistant() {
   useEffect(() => {
     if (!user || user.role !== "patient") return;
 
-    const timer = setTimeout(() => {
-      setShowPrompt(true);
-      // Hide prompt after 5 seconds
-      setTimeout(() => setShowPrompt(false), 5000);
-    }, Math.random() * 60000 + 60000); // Random between 60-120 seconds (1-2 minutes)
+    const timer = setTimeout(
+      () => {
+        setShowPrompt(true);
+        // Hide prompt after 5 seconds
+        setTimeout(() => setShowPrompt(false), 5000);
+      },
+      Math.random() * 2000 + 2000,
+    ); // Random between 60-120 seconds (1-2 minutes)
 
     return () => clearTimeout(timer);
   }, [user]);
@@ -87,7 +90,7 @@ export default function AarogyaAssistant() {
   const handleOpen = () => {
     setIsOpen(true);
     setShowPrompt(false);
-    
+
     // Add welcome message if first time
     if (messages.length === 0) {
       setMessages([
@@ -100,9 +103,9 @@ export default function AarogyaAssistant() {
             "Find available slots",
             "Search doctors",
             "Check my appointments",
-            "Help"
-          ]
-        }
+            "Help",
+          ],
+        },
       ]);
     }
   };
@@ -182,7 +185,9 @@ export default function AarogyaAssistant() {
                   className="absolute bottom-20 right-0 bg-slate-900 text-white px-4 py-2 rounded-lg shadow-lg whitespace-nowrap"
                 >
                   <div className="text-sm font-medium">Ask AA</div>
-                  <div className="text-xs text-slate-300">Your health assistant</div>
+                  <div className="text-xs text-slate-300">
+                    Your health assistant
+                  </div>
                   <div className="absolute bottom-0 right-6 transform translate-y-1/2 rotate-45 w-3 h-3 bg-slate-900"></div>
                 </motion.div>
               )}
@@ -199,7 +204,7 @@ export default function AarogyaAssistant() {
             >
               {/* Gradient overlay */}
               <div className="absolute inset-0 bg-gradient-to-br from-slate-700 to-slate-900 opacity-0 group-hover:opacity-100 transition-opacity"></div>
-              
+
               {/* Logo */}
               <div className="relative z-10">
                 <Bot className="w-8 h-8 text-white" />
@@ -244,7 +249,9 @@ export default function AarogyaAssistant() {
                   </div>
                   <div>
                     <h3 className="font-semibold">Aarogya Assistant</h3>
-                    <p className="text-xs text-slate-300">Always here to help</p>
+                    <p className="text-xs text-slate-300">
+                      Always here to help
+                    </p>
                   </div>
                 </div>
                 <button
@@ -261,7 +268,9 @@ export default function AarogyaAssistant() {
                   <div key={message.id}>
                     <div
                       className={`flex ${
-                        message.sender === "user" ? "justify-end" : "justify-start"
+                        message.sender === "user"
+                          ? "justify-end"
+                          : "justify-start"
                       }`}
                     >
                       <div
@@ -271,7 +280,9 @@ export default function AarogyaAssistant() {
                             : "bg-white text-slate-900 shadow-sm border border-slate-200"
                         }`}
                       >
-                        <p className="text-sm whitespace-pre-wrap">{message.text}</p>
+                        <p className="text-sm whitespace-pre-wrap">
+                          {message.text}
+                        </p>
                         <p
                           className={`text-xs mt-1 ${
                             message.sender === "user"
