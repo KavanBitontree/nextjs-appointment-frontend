@@ -55,9 +55,6 @@ export async function createSlotsForDate(payload: {
   start_time: string;
   end_time: string;
 }) {
-  const { data } = await api.post(
-    "/doctor/availability/date-slots/create",
-    payload,
-  );
+  const { data } = await api.post("/doctor/availability", payload);
   return data;
 }
