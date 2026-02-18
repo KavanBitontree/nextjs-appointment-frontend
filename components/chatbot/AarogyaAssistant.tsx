@@ -2,7 +2,8 @@
 
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Send, Bot } from "lucide-react";
+import { X, Send } from "lucide-react";
+import Image from "next/image";
 import { api } from "@/lib/axios";
 import { useAuth } from "@/context/AuthContext";
 
@@ -200,14 +201,24 @@ export default function AarogyaAssistant() {
               whileTap={{ scale: 0.9 }}
               animate={showPrompt ? { y: [0, -10, 0] } : {}}
               transition={{ duration: 0.5, repeat: showPrompt ? 3 : 0 }}
-              className="w-16 h-16 bg-slate-900 rounded-full shadow-2xl flex items-center justify-center hover:bg-slate-800 transition-colors group relative overflow-hidden"
+              className="w-16 h-16 bg-slate-900 rounded-full shadow-2xl flex items-center justify-center hover:bg-slate-800 transition-colors group relative overflow-hidden transform-gpu will-change-transform"
             >
               {/* Gradient overlay */}
               <div className="absolute inset-0 bg-gradient-to-br from-slate-700 to-slate-900 opacity-0 group-hover:opacity-100 transition-opacity"></div>
 
               {/* Logo */}
               <div className="relative z-10">
-                <Bot className="w-8 h-8 text-white" />
+                <Image
+                  src="/images/bot.svg"
+                  alt="Aarogya Assistant"
+                  width={56}
+                  height={56}
+                  className="w-14 h-14"
+                  style={{
+                    imageRendering: 'crisp-edges',
+                    shapeRendering: 'geometricPrecision',
+                  }}
+                />
               </div>
             </motion.button>
           </motion.div>
@@ -244,8 +255,18 @@ export default function AarogyaAssistant() {
               {/* Header */}
               <div className="bg-slate-900 text-white p-4 flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-slate-800 rounded-full flex items-center justify-center">
-                    <Bot className="w-6 h-6" />
+                  <div className="w-12 h-12 bg-slate-800 rounded-full flex items-center justify-center">
+                    <Image
+                      src="/images/bot.svg"
+                      alt="Aarogya Assistant"
+                      width={44}
+                      height={44}
+                      className="w-11 h-11"
+                      style={{
+                        imageRendering: 'crisp-edges',
+                        shapeRendering: 'geometricPrecision',
+                      }}
+                    />
                   </div>
                   <div>
                     <h3 className="font-semibold">Aarogya Assistant</h3>
